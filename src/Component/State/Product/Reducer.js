@@ -3,7 +3,10 @@ import {
     GET_PRODUCTBYCATEGORY_SUCCESS, 
     GET_PRODUCTBYID_REQUEST, 
     GET_PRODUCTBYID_SUCCESS, 
-    GET_PRODUCTBYID_FAILURE 
+    GET_PRODUCTBYID_FAILURE, 
+    GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST,
+    GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS,
+    GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE
 } from "./ActionType";
 
 const initialState = {
@@ -47,6 +50,30 @@ export const productReducer = (state = initialState, action) => {
 
         // Thất bại lấy sản phẩm theo ID
         case GET_PRODUCTBYID_FAILURE:
+            return {
+                ...state,
+                isLoading: false,
+                error: action.payload, // Cập nhật lỗi
+            };
+
+         // Bắt đầu lấy sản phẩm theo nhà hàng và danh mục
+         case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST:
+            return {
+                ...state,
+                isLoading: true,
+                error: null, // Xóa lỗi cũ (nếu có)
+            };
+
+        // Thành công lấy sản phẩm theo nhà hàng và danh mục
+        case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS:
+            return {
+                ...state,
+                isLoading: false,
+                products: action.payload, // Cập nhật danh sách sản phẩm
+            };
+
+        // Thất bại lấy sản phẩm theo nhà hàng và danh mục
+        case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE:
             return {
                 ...state,
                 isLoading: false,

@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from "react";
 import "react-alice-carousel/lib/alice-carousel.css";
-import { Dialog, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
+import {
+  Dialog,
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from "@headlessui/react";
 import { XMarkIcon, PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategory } from "../State/Category/Action";
 import Carousel from "./Carousel";
 import CategoryCarousel from "./CategoryCarousel";
+import { useNavigate, useParams } from "react-router-dom";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -16,6 +22,8 @@ function classNames(...classes) {
 export default function Category() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
 
   // Lấy danh mục từ Redux store
   const { category } = useSelector((state) => state.category);
@@ -23,6 +31,11 @@ export default function Category() {
   useEffect(() => {
     dispatch(getCategory({ id: 1 })); // Fetch danh mục với ID giả định
   }, [dispatch]);
+
+  const handleProductByCategory = (categoryId, restaurantId) => {
+    // Điều hướng đến trang sản phẩm theo danh mục, với restaurantId cố định là 1
+    navigate(`/product/${categoryId}/1`);
+  };
 
   return (
     <div className="bg-white mt-0 pt-0">
@@ -51,7 +64,10 @@ export default function Category() {
               <ul role="list" className="px-2 py-3 text-gray-900 font-medium">
                 {category.map((item) => (
                   <li key={item.id}>
-                    <a href={`/category/${item.id}`} className="block px-2 py-3">
+                    <a
+                      href={`/category/${item.id}`}
+                      className="block px-2 py-3"
+                    >
                       {item.name}
                     </a>
                   </li>
@@ -71,7 +87,9 @@ export default function Category() {
         </div>
 
         <section aria-labelledby="products-heading" className="pb-24 pt-6">
-          <h2 id="products-heading" className="sr-only">Products</h2>
+          <h2 id="products-heading" className="sr-only">
+            Products
+          </h2>
 
           <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
             {/* Filters */}
@@ -80,7 +98,13 @@ export default function Category() {
               <ul role="list" className="space-y-4 text-gray-900 font-medium">
                 {category.map((item) => (
                   <li key={item.id}>
-                    <a href={`/category/${item.id}`}>{item.name}</a>
+                    <button
+                      type="button"
+                      className="hover:underline"
+                      onClick={() => handleProductByCategory(item.id)}
+                    >
+                      {item.name}
+                    </button>
                   </li>
                 ))}
               </ul>

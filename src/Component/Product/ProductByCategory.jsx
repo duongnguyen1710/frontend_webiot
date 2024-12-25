@@ -1,36 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getProductByRestaurantAndCategory } from '../State/Product/Action';
+import { useNavigate, useParams } from 'react-router-dom';
+import { addItemToCart } from '../State/Cart/Action';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; 
+import { getCategoryItems } from '../State/Category/Action';
 
 const ProductByCategory = () => {
-  const categories = ['Sub-category 1', 'Sub-category 2', 'Sub-category 3']; // Các danh mục con
-  const priceFilters = ['0 - 100$', '100$ - 500$', '500$ - 1000$']; // Filter theo giá
-  const allProducts = [
-    { id: 1, name: 'Product 1', price: '100$', image: '/path/to/image1.jpg' },
-    { id: 2, name: 'Product 2', price: '200$', image: '/path/to/image2.jpg' },
-    { id: 3, name: 'Product 3', price: '300$', image: '/path/to/image3.jpg' },
-    { id: 4, name: 'Product 4', price: '400$', image: '/path/to/image4.jpg' },
-    { id: 5, name: 'Product 5', price: '500$', image: '/path/to/image5.jpg' },
-    { id: 6, name: 'Product 6', price: '600$', image: '/path/to/image6.jpg' },
-    { id: 7, name: 'Product 7', price: '700$', image: '/path/to/image7.jpg' },
-    { id: 8, name: 'Product 8', price: '800$', image: '/path/to/image8.jpg' },
-    { id: 9, name: 'Product 9', price: '900$', image: '/path/to/image9.jpg' },
-  ]; // Dữ liệu mẫu cho sản phẩm
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { categoryId, restaurantId } = useParams();
+  const categoryItems = useSelector((state) => state.category.categoryItems || []);
+  const products = useSelector((state) => state.product.products || []); // Danh sách sản phẩm
+  const isLoading = useSelector((state) => state.product.isLoading); 
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6; // Số sản phẩm mỗi trang
-  const totalPages = Math.ceil(allProducts.length / itemsPerPage);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  const products = allProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handleAddToCart = (product) => {
+    const reqData = {
+      token: localStorage.getItem("jwt"),
+      cartItem: {
+        productId: product.id,
+        quantity: 1,
+      },
+    };
+
+    dispatch(addItemToCart(reqData));
+    console.log("req data", reqData);
+
+    // Hiển thị thông báo thành công
+    toast.success("Sản phẩm đã được thêm vào giỏ hàng!", {
+      position: "top-right",
+      autoClose: 3000, // Thời gian toast tự đóng (ms)
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  };
+
+  const handleViewDetails = (productId) => {
+    navigate(`/detail/${productId}`);
+  };
+
+  useEffect(() => {
+    if (categoryId && restaurantId) {
+      dispatch(getProductByRestaurantAndCategory({ categoryId, restaurantId }));
+      dispatch(getCategoryItems({ categoryId, restaurantId }));
+    }
+  }, [categoryId, restaurantId, dispatch]);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+      <ToastContainer />
       {/* Sidebar */}
       <aside className="w-1/4 bg-white shadow-md p-4">
         <h2 className="text-lg font-bold mb-4">Bộ lọc</h2>
@@ -38,19 +69,19 @@ const ProductByCategory = () => {
         <div className="mb-6">
           <h3 className="text-md font-semibold mb-2">Danh mục con</h3>
           <ul>
-            {categories.map((category, index) => (
-              <li key={index} className="mb-2">
+            {categoryItems.map((item) => (
+              <li key={item.id} className="mb-2">
                 <label className="flex items-center">
                   <input type="checkbox" className="mr-2" />
-                  {category}
+                  {item.name}
                 </label>
               </li>
             ))}
           </ul>
         </div>
-        {/* Filter: Price */}
+        {/* Filter: Price 
         <div className="mb-6">
-          <h3 className="text-md font-semibold mb-2">Lọc theo giá</h3>
+          <h3 className="text-md font-semibold mb-2">Giá</h3>
           <ul>
             {priceFilters.map((filter, index) => (
               <li key={index} className="mb-2">
@@ -62,6 +93,7 @@ const ProductByCategory = () => {
             ))}
           </ul>
         </div>
+        */}
       </aside>
 
       {/* Main content */}
@@ -79,18 +111,18 @@ const ProductByCategory = () => {
               className="bg-white shadow rounded-lg overflow-hidden"
             >
               <img
-                src={product.image}
+                src={product.images[0]}
                 alt={product.name}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
                 <h3 className="text-lg font-semibold">{product.name}</h3>
-                <p className="text-gray-700">{product.price}</p>
+                <p className="text-gray-700">{product.price}đ</p>
                 <div className="flex mt-4 space-x-2">
-                  <button className="w-1/2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                  <button onClick={() => handleAddToCart(product)} className="w-1/2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
                     Thêm vào giỏ hàng
                   </button>
-                  <button className="w-1/2 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400">
+                  <button onClick={() => handleViewDetails(product.id)} className="w-1/2 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400">
                     Xem chi tiết
                   </button>
                 </div>

@@ -21,12 +21,11 @@ function classNames(...classes) {
 }
 
 export default function Navbar() {
-  const { auth } = useSelector((store) => store);
+  const { auth, cart } = useSelector((store) => store);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // State to control cart modal visibility
-  const [isCartOpen, setCartOpen] = useState(false);
+
 
   const handleAvatarClick = () => {
     if (auth.user?.role === "ROLE_CUSTOMER") {
@@ -44,10 +43,6 @@ export default function Navbar() {
     }
   };
 
-  // Handle navigate to Cart page
-  const handleCartClick = () => {
-    setCartOpen(true);  // Điều hướng đến trang giỏ hàng
-  };
 
   return (
     <>
@@ -130,11 +125,11 @@ export default function Navbar() {
             {/* Cart Icon */}
             <button
               type="button"
-              onClick={handleCartClick} // Trigger handleCartClick when cart icon is clicked
+              
               className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 ml-4"
             >
               <span className="sr-only">View cart</span>
-              <ShoppingCartIcon className="h-6 w-6" />
+              <ShoppingCartIcon onClick={()=>navigate("cart")}  className="h-6 w-6" />
             </button>
 
             {/* Profile dropdown menu */}
@@ -187,7 +182,7 @@ export default function Navbar() {
         </div>
       </div>
     </Disclosure>
-    {isCartOpen && <Cart open={isCartOpen} setOpen={setCartOpen} />}
+    
     </>
   );
 }

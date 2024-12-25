@@ -3,6 +3,9 @@ import {
   GET_NEWPRODUCT_FAILURE,
   GET_NEWPRODUCT_REQUEST,
   GET_NEWPRODUCT_SUCCESS,
+  GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE,
+  GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST,
+  GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS,
   GET_PRODUCTBYCATEGORY_SUCCESS,
   GET_PRODUCTBYID_FAILURE,
   GET_PRODUCTBYID_REQUEST,
@@ -12,7 +15,7 @@ import {
 export const getProductByCategory = ({ categoryId }) => {
   return async (dispatch) => {
     try {
-      const response = await api.get(`/product/category`, {
+      const response = await api.get(`/product`, {
         params: { categoryId },
       });
 
@@ -62,3 +65,28 @@ export const getProductById = (productId) => {
       }
     };
   };
+
+  export const getProductByRestaurantAndCategory = ({ restaurantId, categoryId }) => {
+    return async (dispatch) => {
+        dispatch({ type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST }); // Bắt đầu gọi API
+        try {
+            const response = await api.get(`/product/${categoryId}/${restaurantId}`);
+            
+            console.log("Products by restaurant and category:", response.data);
+            
+            // Thành công
+            dispatch({
+                type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS,
+                payload: response.data, // Dữ liệu sản phẩm trả về từ API
+            });
+        } catch (error) {
+            console.error("Error fetching products by restaurant and category:", error);
+            
+            // Thất bại
+            dispatch({
+                type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE,
+                payload: error.message || "Something went wrong",
+            });
+        }
+    };
+};

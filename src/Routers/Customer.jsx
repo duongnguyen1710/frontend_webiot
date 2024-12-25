@@ -9,8 +9,9 @@ import ProductDetail from "../Component/Product/ProductDetail";
 import ProductByCategory from "../Component/Product/ProductByCategory";
 import Order from "../Component/Order/Order";
 import ListBlog from "../Component/Blog/ListBlog";
-import Category from "../Component/Category/Category";
-import NewProduct from "../Component/Home/NewProduct";
+import Cart from "../Component/Cart/Cart";
+import { PaymentSuccess } from "../Component/Payment/PaymentSuccess";
+import { PaymentFailed } from "../Component/Payment/PaymentFailed";
 
 
 const Customer = () => {
@@ -25,11 +26,13 @@ const Customer = () => {
           <Route path="/" element={<Home />} />
           <Route path="/:register" element={<Home />} />
           <Route path="/profile/*" element={<Profile />} />
-          <Route path='/detail/:id' element={<ProductDetail />} />
-          <Route path="/product" element={<ProductByCategory />} />
+          <Route path='/detail/:productId' element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/order" element={<Order />} />
           <Route path="/blog" element={<ListBlog />} />
-          <Route path="/category" element={<Category />} />
+          <Route path='/product/:categoryId/:restaurantId' element={<ProductByCategory />} />
+          <Route path="/payment/success/:id" element={<PaymentSuccess />} />
+          <Route path="/payment/fail" element={<PaymentFailed />} />
         </Routes>
       </main>
 
