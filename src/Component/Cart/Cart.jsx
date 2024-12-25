@@ -11,7 +11,7 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
 import { Field, Form, Formik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,7 +19,7 @@ import { removeCartItem, updateCartItem } from "../State/Cart/Action";
 import { CartItem } from "./CartItem";
 import { Address } from "./Address";
 import { createOrder } from "../State/Orders/Action";
-// import * as Yup from "Yup";
+import { fetchAddresses } from "../State/Address/Action"; // Import fetchAddresses action
 
 const style = {
   position: "absolute",
@@ -41,21 +41,20 @@ const initialValues = {
   paymentMethod: "",
 };
 
-// const validationSchema = Yup.object.shape({
-//   streetAddress: Yup.string().required("street address is required"),
-//   state: Yup.string().required("state is required"),
-//   pincode: Yup.string().required("pincode is required"),
-//   city: Yup.string().required("city is required"),
-// });
-
 const Cart = ({ item }) => {
-  const createOrderUsingSelectedAdress = () => {};
-  const handleOpenAddressModal = () => setOpen(true);
-  const [open, setOpen] = React.useState(false);
-  const { cart, auth } = useSelector((store) => store);
+  const [open, setOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const { cart, auth, address } = useSelector((store) => store);
   const dispatch = useDispatch();
-  const handleClose = () => setOpen(false);
   const jwt = localStorage.getItem("jwt");
+
+  useEffect(() => {
+    dispatch(fetchAddresses(jwt)); // Fetch addresses when component mounts
+  }, [dispatch, jwt]);
+
+  const handleOpenAddressModal = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
   const handleUpdateCartItem = (value) => {
     if (value === -1 && item.quantity === 1) {
       handleRemoveCartItem();
@@ -81,11 +80,16 @@ const Cart = ({ item }) => {
           postalCode: values.pincode,
           country: "Việt Nam",
         },
-        paymentMethod: values.paymentMethod, // Add this line to send payment method
+        paymentMethod: values.paymentMethod,
       },
     };
     dispatch(createOrder(data));
     console.log("form value", values);
+  };
+
+  const createOrderUsingSelectedAddress = (address) => {
+    setSelectedAddress(address);
+    setOpen(true);
   };
 
   return (
@@ -123,9 +127,10 @@ const Cart = ({ item }) => {
               ĐỊA CHỈ
             </h1>
             <div className="flex gap-5 flex-wrap justify-center">
-              {[].map((item) => (
+              {address.addresses.map((item) => (
                 <Address
-                  handleSelectAddress={createOrderUsingSelectedAdress}
+                  key={item.id}
+                  handleSelectAddress={createOrderUsingSelectedAddress}
                   item={item}
                   showButton={true}
                 />
@@ -157,7 +162,9 @@ const Cart = ({ item }) => {
       >
         <Box sx={style}>
           <Formik
-            initialValues={initialValues}
+            initialValues={
+              selectedAddress || initialValues
+            }
             //validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
