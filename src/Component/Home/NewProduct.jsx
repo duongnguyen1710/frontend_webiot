@@ -18,7 +18,9 @@ const NewProduct = () => {
   }, [dispatch]);
 
   const handleAddToCart = (product) => {
-    if (!jwt) {
+    const jwt = localStorage.getItem("jwt"); // Lấy jwt từ localStorage
+  
+    if (!jwt || jwt.trim() === "") {
       toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!", {
         position: "top-right",
         autoClose: 3000,
@@ -31,7 +33,7 @@ const NewProduct = () => {
       navigate("/login"); // Chuyển hướng đến trang đăng nhập
       return;
     }
-
+  
     const reqData = {
       token: jwt,
       cartItem: {
@@ -39,14 +41,13 @@ const NewProduct = () => {
         quantity: 1,
       },
     };
-
+  
     dispatch(addItemToCart(reqData));
     console.log("req data", reqData);
-
-    // Hiển thị thông báo thành công
+  
     toast.success("Sản phẩm đã được thêm vào giỏ hàng!", {
       position: "top-right",
-      autoClose: 3000, // Thời gian toast tự đóng (ms)
+      autoClose: 3000,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
@@ -54,6 +55,7 @@ const NewProduct = () => {
       progress: undefined,
     });
   };
+  
 
   const handleViewDetails = (productId) => {
     navigate(`/detail/${productId}`);

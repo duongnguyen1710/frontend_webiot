@@ -12,6 +12,7 @@ import ListBlog from "../Component/Blog/ListBlog";
 import Cart from "../Component/Cart/Cart";
 import { PaymentSuccess } from "../Component/Payment/PaymentSuccess";
 import { PaymentFailed } from "../Component/Payment/PaymentFailed";
+import ProfileAddress from "../Component/Profile/ProfileAddress";
 
 
 const Customer = () => {
@@ -21,7 +22,7 @@ const Customer = () => {
         <Navbar />
       </header>
 
-      <main className="flex-1 mt-[64px] mb-[64px]"> 
+      <main className="flex-1 mt-[64px] mb-[64px] overflow-hidden"> 
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/:register" element={<Home />} />

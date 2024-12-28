@@ -4,9 +4,9 @@ import { Button, Card } from "@mui/material";
 
 export const Address = ({ item, showButton, handleSelectAddress }) => {
   return (
-    <Card className="flex gap-5 w-64 p-5 ">
+    <Card className="flex gap-5 w-64 p-5 border border-gray-200 shadow-md">
       <HomeIcon />
-      <div className="space-y-3 text-gray-500">
+      <div className="space-y-3 text-gray-600">
         <h1 className="font-semibold text-lg">{item.fullName}</h1>
         <p>
           {item.street}, {item.city}, {item.province}, {item.pincode}
@@ -17,7 +17,7 @@ export const Address = ({ item, showButton, handleSelectAddress }) => {
             fullWidth
             onClick={() => handleSelectAddress(item)}
           >
-            Select
+            Chọn Địa Chỉ
           </Button>
         )}
       </div>

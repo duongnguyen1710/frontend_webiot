@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Card,
   Divider,
@@ -6,20 +7,19 @@ import {
   Box,
   Grid,
   TextField,
-  MenuItem,
-  Select,
-  InputLabel,
   FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
 import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
-import { Field, Form, Formik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { removeCartItem, updateCartItem } from "../State/Cart/Action";
 import { CartItem } from "./CartItem";
 import { Address } from "./Address";
 import { createOrder } from "../State/Orders/Action";
-import { fetchAddresses } from "../State/Address/Action"; // Import fetchAddresses action
+import { createAddress, fetchAddresses } from "../State/Address/Action";
+import { Field, Form, Formik } from "formik";
 
 const style = {
   position: "absolute",
@@ -34,253 +34,241 @@ const style = {
 };
 
 const initialValues = {
-  streetAddress: "",
-  state: "",
-  pincode: "",
+  fullName: "",
+  phone: "",
+  fullAddress: "",
+  street: "",
   city: "",
-  paymentMethod: "",
+  province: "",
+  pincode: "",
 };
 
-const Cart = ({ item }) => {
+const Cart = () => {
   const [open, setOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const { cart, auth, address } = useSelector((store) => store);
+  const [paymentMethod, setPaymentMethod] = useState("");
+
+  const { cart, address } = useSelector((store) => store);
   const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
 
+  // Fetch danh sách địa chỉ khi component mount
   useEffect(() => {
-    dispatch(fetchAddresses(jwt)); // Fetch addresses when component mounts
+    if (jwt) {
+      dispatch(fetchAddresses(jwt));
+    }
   }, [dispatch, jwt]);
 
-  const handleOpenAddressModal = () => setOpen(true);
+  const handleOpenAddressModal = () => {
+    console.log("Open Address Modal clicked"); // Kiểm tra trong console
+    setOpen(true);
+  };
+
   const handleClose = () => setOpen(false);
 
-  const handleUpdateCartItem = (value) => {
-    if (value === -1 && item.quantity === 1) {
-      handleRemoveCartItem();
-    }
-    const data = { cartItemId: item.id, quantity: item.quantity + value };
-    dispatch(updateCartItem({ data, jwt }));
+  // Tính tổng tiền giỏ hàng
+  const calculateTotalPrice = () => {
+    return cart.cartItems.reduce((total, item) => total + item.totalPrice, 0);
   };
 
-  const handleRemoveCartItem = () => {
-    dispatch(removeCartItem({ cartItemId: item.id, jwt: auth.jwt || jwt }));
-  };
+  const shippingFee = 30000; // Phí ship cố định
 
-  const handleSubmit = (values) => {
-    const data = {
-      jwt: localStorage.getItem("jwt"),
-      order: {
-        restaurantId: cart.cartItems[0].product?.restaurant.id,
-        deliveryAddress: {
-          fullName: auth.user?.fullName,
-          streetAddress: values.streetAddress,
-          city: values.city,
-          state: values.state,
-          postalCode: values.pincode,
-          country: "Việt Nam",
-        },
-        paymentMethod: values.paymentMethod,
-      },
+  const handleSubmit = (values, { resetForm }) => {
+    const addressData = {
+      fullName: values.fullName,
+      phone: values.phone,
+      fullAddress: values.fullAddress,
+      street: values.street,
+      city: values.city,
+      province: values.province,
+      pincode: values.pincode,
     };
-    dispatch(createOrder(data));
-    console.log("form value", values);
+
+    dispatch(createAddress(addressData, jwt))
+      .then(() => {
+        dispatch(fetchAddresses(jwt));
+        resetForm();
+        handleClose();
+      })
+      .catch((error) => {
+        console.error("Failed to create address:", error);
+      });
   };
 
-  const createOrderUsingSelectedAddress = (address) => {
-    setSelectedAddress(address);
-    setOpen(true);
+  const handleOrder = () => {
+    if (!selectedAddress || !paymentMethod) {
+      console.warn(
+        "Chọn địa chỉ và phương thức thanh toán trước khi thanh toán."
+      );
+      return;
+    }
+
+    const orderData = {
+      restaurantId: cart.cartItems[0]?.product?.restaurant?.id || 1,
+      deliveryAddress: {
+        id: selectedAddress.id,
+        fullName: selectedAddress.fullName,
+        phone: selectedAddress.phone,
+        fullAddress: selectedAddress.fullAddress,
+        street: selectedAddress.street,
+        city: selectedAddress.city,
+        province: selectedAddress.province,
+        pincode: selectedAddress.pincode,
+      },
+      paymentMethod: paymentMethod,
+    };
+
+    dispatch(createOrder({ order: orderData, jwt }));
   };
 
   return (
     <div>
-      <main className="lg:flex justify-between ">
+      <main className="lg:flex justify-between">
+        {/* Cart Items Section */}
         <section className="lg:w-[30%] space-y-6 lg:min-h-screen pt-10">
           {cart.cartItems.map((item) => (
-            <CartItem item={item} />
+            <CartItem key={item.id} item={item} />
           ))}
           <Divider />
-          <div className="billlDetails px-5 text-sm">
-            <p className="font-extralight py-5 "> Chi tiết đơn hàng</p>
+          {/* Chi Tiết Đơn Hàng */}
+          <div className="billDetails px-5 text-sm">
+            <p className="font-extralight py-5">Chi tiết đơn hàng</p>
             <div className="space-y-3">
-              <div className="flex justify-between text gray-500">
-                <p>Tổng tiền</p>
-                <p>{cart.cart?.total}VNĐ</p>
+              <div className="flex justify-between text-gray-500">
+                <p>Tổng tiền:</p>
+                <p>{calculateTotalPrice()} VNĐ</p>
               </div>
-
-              <div className="flex justify-between text gray-400">
-                <p>Phí ship</p>
-                <p>30000VNĐ</p>
+              <div className="flex justify-between text-gray-400">
+                <p>Phí ship:</p>
+                <p>{shippingFee} VNĐ</p>
               </div>
               <Divider />
-            </div>
-            <div className="flex justify-between text-gray-400">
-              <p>Tổng</p>
-              <p>{cart.cart?.total + 30000}VNĐ</p>
+              <div className="flex justify-between text-gray-500 font-bold">
+                <p>Tổng cộng:</p>
+                <p>{calculateTotalPrice() + shippingFee} VNĐ</p>
+              </div>
             </div>
           </div>
         </section>
-        <Divider orientation="vertical" flexItem />
-        <section className="lg:w-[70%] flex justify-center px-5 pb-10 lg:pb-0">
-          <div>
-            <h1 className="text-center font-semibold text-2xl py-10">
-              ĐỊA CHỈ
-            </h1>
-            <div className="flex gap-5 flex-wrap justify-center">
-              {address.addresses.map((item) => (
-                <Address
-                  key={item.id}
-                  handleSelectAddress={createOrderUsingSelectedAddress}
-                  item={item}
-                  showButton={true}
-                />
-              ))}
-              <Card className="flex gap-5 w-64 p-5 ">
-                <AddLocationAltIcon />
-                <div className="space-y-3 text-gray-500">
-                  <h1 className="font-semibold text-lg text-white">
-                    Thêm địa chỉ
-                  </h1>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleOpenAddressModal}
-                  >
-                    Thêm
-                  </Button>
-                </div>
-              </Card>
-            </div>
+
+        {/* Address Selection Section */}
+        <section className="lg:w-[70%] px-5 pb-10 lg:pb-0">
+          <h1 className="text-center font-semibold text-2xl py-10">ĐỊA CHỈ</h1>
+          <div className="flex flex-wrap gap-4 justify-center items-center">
+            {address.addresses.map((item) => (
+              <Address
+                key={item.id}
+                handleSelectAddress={setSelectedAddress}
+                item={item}
+                showButton={true}
+              />
+            ))}
+            {/* Nút Thêm Địa Chỉ */}
+            <Card className="flex gap-5 w-64 p-5 items-center justify-center">
+              <AddLocationAltIcon />
+              <div className="space-y-3 text-gray-500 text-center">
+                <h1 className="font-semibold text-lg">Thêm địa chỉ</h1>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={handleOpenAddressModal}
+                >
+                  Thêm
+                </Button>
+              </div>
+            </Card>
           </div>
+          {selectedAddress && (
+            <div className="bg-gray-100 p-5 rounded-md shadow-md mt-5 text-center">
+              <h2 className="font-semibold mb-2">
+                Thông Tin Địa Chỉ Giao Hàng
+              </h2>
+              <div className="text-left space-y-2 mb-4">
+                <p>
+                  <strong>Họ và Tên:</strong> {selectedAddress.fullName}
+                </p>
+                <p>
+                  <strong>Số Điện Thoại:</strong> {selectedAddress.phone}
+                </p>
+                <p>
+                  <strong>Địa Chỉ:</strong> {selectedAddress.fullAddress}
+                </p>
+                <p>
+                  <strong>Đường:</strong> {selectedAddress.street}
+                </p>
+                <p>
+                  <strong>Thành Phố:</strong> {selectedAddress.city}
+                </p>
+                <p>
+                  <strong>Tỉnh:</strong> {selectedAddress.province}
+                </p>
+                <p>
+                  <strong>Mã Bưu Điện:</strong> {selectedAddress.pincode}
+                </p>
+              </div>
+
+              <h2 className="font-semibold mb-2">
+                Chọn Phương Thức Thanh Toán
+              </h2>
+              <FormControl fullWidth className="mb-4">
+                <InputLabel>Phương thức thanh toán</InputLabel>
+                <Select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
+                  <MenuItem value="stripe">Stripe</MenuItem>
+                  <MenuItem value="vnpay">VNPay</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleOrder}
+              >
+                Tiến Hành Thanh Toán
+              </Button>
+            </div>
+          )}
         </section>
       </main>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <Formik
-            initialValues={
-              selectedAddress || initialValues
-            }
-            //validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            <Form>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Field
-                    as={TextField}
-                    name="streetAddress"
-                    label="Phường"
-                    fullWidth
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Field
-                    as={TextField}
-                    name="state"
-                    label="Tỉnh"
-                    fullWidth
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Field
-                    as={TextField}
-                    name="city"
-                    label="Thành phố"
-                    fullWidth
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Field
-                    as={TextField}
-                    name="pincode"
-                    label="Pincode"
-                    fullWidth
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>Phương thức thanh toán</InputLabel>
-                    <Field
-                      as={Select}
-                      name="paymentMethod"
-                      label="Phương thức thanh toán"
-                      fullWidth
-                    >
-                      <MenuItem value="vnpay">
-                        <img
-                          src="vnPay.png"
-                          alt="VNPay"
-                          style={{
-                            marginRight: "10px",
-                            width: "30px",
-                            height: "30px",
-                          }}
-                        />
-                        VNPay
-                      </MenuItem>
-                      <MenuItem value="stripe">
-                        <img
-                          src="stripe.png"
-                          alt="Stripe"
-                          style={{
-                            marginRight: "10px",
-                            width: "30px",
-                            height: "30px",
-                          }}
-                        />
-                        Stripe
-                      </MenuItem>
-                      <MenuItem value="paypal">
-                        <img
-                          src="paypal.png"
-                          alt="Paypal"
-                          style={{
-                            marginRight: "10px",
-                            width: "30px",
-                            height: "30px",
-                          }}
-                        />
-                        Paypal
-                      </MenuItem>
-                      <MenuItem value="onepay">
-                        <img
-                          src="onepay.png"
-                          alt="OnePay"
-                          style={{
-                            marginRight: "10px",
-                            width: "30px",
-                            height: "30px",
-                          }}
-                        />
-                        OnePay
-                      </MenuItem>
-                    </Field>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    type="submit"
-                    color="primary"
-                  >
-                    Hoàn tất
-                  </Button>
-                </Grid>
-              </Grid>
-            </Form>
-          </Formik>
-        </Box>
-      </Modal>
+      <Modal open={open} onClose={handleClose}>
+  <Box sx={style}>
+    <h2 className="font-semibold text-xl mb-4 text-center">Thêm Địa Chỉ</h2>
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+      <Form>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Field as={TextField} name="fullName" label="Họ và tên" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Field as={TextField} name="phone" label="Số điện thoại" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Field as={TextField} name="fullAddress" label="Địa chỉ chi tiết" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Field as={TextField} name="street" label="Đường" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Field as={TextField} name="city" label="Thành phố" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Field as={TextField} name="province" label="Tỉnh" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Field as={TextField} name="pincode" label="Mã bưu điện" fullWidth />
+          </Grid>
+          <Grid item xs={12}>
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Thêm Địa Chỉ
+            </Button>
+          </Grid>
+        </Grid>
+      </Form>
+    </Formik>
+  </Box>
+</Modal>
     </div>
   );
 };
