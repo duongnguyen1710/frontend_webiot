@@ -3,6 +3,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
+import VerifyEmail from "./VerifyEmail";
 
 const style = {
   position: "absolute",
@@ -21,20 +22,24 @@ export const Auth = () => {
   const handleOnClose = () => {
     navigate("/");
   };
+
   return (
     <>
       <Modal
         onClose={handleOnClose}
         open={
           location.pathname === "/register" ||
-          location.pathname === "/login"
+          location.pathname === "/login" ||
+          location.pathname === "/verify-email"
         }
       >
         <Box sx={style}>
           {location.pathname === "/register" ? (
-            <Register/>
+            <Register />
+          ) : location.pathname === "/login" ? (
+            <Login />
           ) : (
-            <Login/>
+            <VerifyEmail />
           )}
         </Box>
       </Modal>

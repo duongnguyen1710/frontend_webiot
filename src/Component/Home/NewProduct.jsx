@@ -19,7 +19,7 @@ const NewProduct = () => {
 
   const handleAddToCart = (product) => {
     const jwt = localStorage.getItem("jwt"); // Lấy jwt từ localStorage
-  
+
     if (!jwt || jwt.trim() === "") {
       toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!", {
         position: "top-right",
@@ -33,7 +33,7 @@ const NewProduct = () => {
       navigate("/login"); // Chuyển hướng đến trang đăng nhập
       return;
     }
-  
+
     const reqData = {
       token: jwt,
       cartItem: {
@@ -41,10 +41,10 @@ const NewProduct = () => {
         quantity: 1,
       },
     };
-  
+
     dispatch(addItemToCart(reqData));
     console.log("req data", reqData);
-  
+
     toast.success("Sản phẩm đã được thêm vào giỏ hàng!", {
       position: "top-right",
       autoClose: 3000,
@@ -55,7 +55,6 @@ const NewProduct = () => {
       progress: undefined,
     });
   };
-  
 
   const handleViewDetails = (productId) => {
     navigate(`/detail/${productId}`);
@@ -66,7 +65,7 @@ const NewProduct = () => {
       <ToastContainer /> {/* Thêm ToastContainer vào đây */}
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-          Sản phẩm nổi bật
+          Sản phẩm mới nhất
         </h2>
 
         <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
@@ -74,9 +73,10 @@ const NewProduct = () => {
             <div key={product.id} className="group relative">
               <img
                 alt={product.imageAlt || "Product image"}
-                src={product.images[0]}
+                src={product.images[0] || "default-image-url.jpg"}
                 className="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80"
               />
+
               <h3 className="mt-4 text-sm font-medium text-gray-900">
                 {product.name || "Tên sản phẩm"}
               </h3>

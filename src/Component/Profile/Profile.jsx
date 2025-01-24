@@ -3,12 +3,12 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import ProfileAddress from './ProfileAddress';
 import ProfileOrders from './ProfileOrders';
 import { useEffect } from 'react';
+import ProfilePersonalInfo from './ProfilePersonalInfo';
 
 const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Điều hướng mặc định đến "Thông tin cá nhân" khi truy cập /profile
   useEffect(() => {
     if (location.pathname === '/profile') {
       navigate('/profile/personalInfo');
@@ -52,12 +52,7 @@ const Profile = () => {
         {/* Nội dung chính */}
         <div className="lg:w-[80%] h-[calc(100vh-128px)] overflow-y-auto p-4 bg-white">
           <Routes>
-            <Route path="/personalInfo" element={
-              <div>
-                <h2 className="text-xl font-bold mb-4">Thông tin cá nhân</h2>
-                <p>Chi tiết thông tin cá nhân của bạn.</p>
-              </div>
-            } />
+            <Route path="/personalInfo" element={<ProfilePersonalInfo />} />
             <Route path="/address" element={<ProfileAddress />} />
             <Route path="/orders" element={<ProfileOrders />} />
           </Routes>

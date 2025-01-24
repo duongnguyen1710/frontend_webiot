@@ -13,6 +13,11 @@ import Cart from "../Component/Cart/Cart";
 import { PaymentSuccess } from "../Component/Payment/PaymentSuccess";
 import { PaymentFailed } from "../Component/Payment/PaymentFailed";
 import ProfileAddress from "../Component/Profile/ProfileAddress";
+import BlogDetail from "../Component/Blog/BlogDetail";
+import VnPayResult from "../Component/Payment/VnPayResult/VnPayResult";
+import Login from "../Component/Authentication/Login";
+import Register from "../Component/Authentication/Register";
+import VerifyEmail from "../Component/Authentication/VerifyEmail";
 
 
 const Customer = () => {
@@ -31,9 +36,14 @@ const Customer = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/order" element={<Order />} />
           <Route path="/blog" element={<ListBlog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
           <Route path='/product/:categoryId/:restaurantId' element={<ProductByCategory />} />
           <Route path="/payment/success/:id" element={<PaymentSuccess />} />
           <Route path="/payment/fail" element={<PaymentFailed />} />
+          <Route path="/payment/success" element={<VnPayResult />} />
+          {/* <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} /> */}
+          <Route path="/verify" element={<VerifyEmail />} />
         </Routes>
       </main>
 

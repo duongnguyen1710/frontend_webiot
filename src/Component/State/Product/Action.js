@@ -1,5 +1,8 @@
 import { api } from "../../Config/Api";
 import {
+  FILTER_PRODUCTBYCATEGORYITEM_FAILURE,
+  FILTER_PRODUCTBYCATEGORYITEM_REQUEST,
+  FILTER_PRODUCTBYCATEGORYITEM_SUCCESS,
   GET_NEWPRODUCT_FAILURE,
   GET_NEWPRODUCT_REQUEST,
   GET_NEWPRODUCT_SUCCESS,
@@ -10,6 +13,9 @@ import {
   GET_PRODUCTBYID_FAILURE,
   GET_PRODUCTBYID_REQUEST,
   GET_PRODUCTBYID_SUCCESS,
+  SEARCH_PRODUCT_FAILURE,
+  SEARCH_PRODUCT_REQUEST,
+  SEARCH_PRODUCT_SUCCESS,
 } from "./ActionType";
 
 export const getProductByCategory = ({ categoryId }) => {
@@ -90,3 +96,102 @@ export const getProductById = (productId) => {
         }
     };
 };
+
+export const searchProducts = (query) => async (dispatch) => {
+  try {
+    dispatch({ type: SEARCH_PRODUCT_REQUEST });
+
+    // Gọi API tìm kiếm sản phẩm
+    const response = await api.get(`/product/search?query=${query}`);
+    
+    dispatch({
+      type: SEARCH_PRODUCT_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: SEARCH_PRODUCT_FAILURE,
+      payload: error.response?.data?.message || "Something went wrong!",
+    });
+  }
+};
+
+export const getProductByRestaurantAndCategory1 = ({ restaurantId, categoryId, page = 0, size = 10 }) => {
+  return async (dispatch) => {
+      dispatch({ type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST }); // Bắt đầu gọi API
+      try {
+          const response = await api.get(`/product/page/${categoryId}/${restaurantId}?page=${page}&size=${size}`);
+          
+          console.log("Products by restaurant and category with pagination:", response.data);
+          
+          // Thành công
+          dispatch({
+              type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS,
+              payload: response.data, // Dữ liệu trả về từ API
+          });
+      } catch (error) {
+          console.error("Error fetching products by restaurant and category with pagination:", error);
+          
+          // Thất bại
+          dispatch({
+              type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE,
+              payload: error.message || "Something went wrong",
+          });
+      }
+  };
+};
+
+
+// export const filterProductsByCategoryItem = (categoryItemId) => async (dispatch) => {
+//   try {
+//     console.log(`👉 [Action] Filter với categoryItemId: ${categoryItemId}`);
+      
+//     dispatch({ type: FILTER_PRODUCTBYCATEGORYITEM_REQUEST });
+
+//     // Gọi API chính xác
+//     const { data } = await api.get(`/product/filterByCategoryItem?categoryItemId=${categoryItemId}`);
+    
+//     console.log('✅ [Action] API Response:', data);
+
+//     dispatch({
+//       type: FILTER_PRODUCTBYCATEGORYITEM_SUCCESS,
+//       payload: data,
+//     });
+
+//   } catch (error) {
+//     console.error('❌ [Action] FILTER_PRODUCTBYCATEGORYITEM_FAILURE:', error.response?.data?.message || error.message);
+
+//     dispatch({
+//       type: FILTER_PRODUCTBYCATEGORYITEM_FAILURE,
+//       payload: error.response?.data?.message || error.message,
+//     });
+//   }
+// };
+
+export const filterProductsByCategoryItem = ({ categoryItemId, minPrice, maxPrice }) => async (dispatch) => {
+  try {
+    console.log(`👉 [Action] Filter với categoryItemId: ${categoryItemId}, minPrice: ${minPrice}, maxPrice: ${maxPrice}`);
+    dispatch({ type: 'FILTER_PRODUCTBYCATEGORYITEM_REQUEST' });
+
+    let url = `/product/filter?categoryItemId=${categoryItemId}`;
+    if (minPrice !== null && maxPrice !== null) {
+      url += `&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+    }
+
+    const { data } = await api.get(url);
+
+    console.log('✅ [Action] API Response:', data);
+
+    dispatch({
+      type: 'FILTER_PRODUCTBYCATEGORYITEM_SUCCESS',
+      payload: data,
+    });
+  } catch (error) {
+    console.error('❌ [Action] FILTER_PRODUCTBYCATEGORYITEM_FAILURE:', error.message);
+    dispatch({
+      type: 'FILTER_PRODUCTBYCATEGORYITEM_FAILURE',
+      payload: error.message,
+    });
+  }
+};
+

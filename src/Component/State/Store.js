@@ -8,7 +8,11 @@ import { categoryReducer } from "./Category/Reducer";
 import { productReducer } from "./Product/Reducer";
 import cartReducer from "./Cart/Reducer";
 import { orderReducer } from "./Orders/Reducer";
+import { blogReducer } from "./Blog/Reducer";
+import { vnPayReducer } from "./Payment/VnPay/Reducer";
 import addressReducer from "./Address/Reducer";
+import { ratingReducer } from "./Rating/Reducer";
+import authenticationReducer from "./Authentication/Reducer";
 //import restaurantReducer from "./Restaurant/Reducer";
 //import menuItemReducer from "./Menu/Reducer";
 //import cartReducer from "./Cart/Reducer";
@@ -18,12 +22,16 @@ import addressReducer from "./Address/Reducer";
 
 const rooteReducer = combineReducers({
    auth:authReducer,
+   authentication:authenticationReducer,
    brand:brandReducer,
    category:categoryReducer,
    product: productReducer,
    cart: cartReducer,
    orders: orderReducer,
-   address: addressReducer
+   blog: blogReducer,
+   vnpay: vnPayReducer,
+   address:addressReducer,
+   rating: ratingReducer
 });
 
 export const store =legacy_createStore(rooteReducer,applyMiddleware(thunk))

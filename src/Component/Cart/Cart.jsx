@@ -18,8 +18,14 @@ import { removeCartItem, updateCartItem } from "../State/Cart/Action";
 import { CartItem } from "./CartItem";
 import { Address } from "./Address";
 import { createOrder } from "../State/Orders/Action";
-import { createAddress, fetchAddresses } from "../State/Address/Action";
+import {
+  createAddress,
+  fetchAddresses,
+  getAllUserAddresses,
+} from "../State/Address/Action";
 import { Field, Form, Formik } from "formik";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const style = {
   position: "absolute",
@@ -50,12 +56,19 @@ const Cart = () => {
 
   const { cart, address } = useSelector((store) => store);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const jwt = localStorage.getItem("jwt");
 
   // Fetch danh sách địa chỉ khi component mount
   useEffect(() => {
     if (jwt) {
       dispatch(fetchAddresses(jwt));
+    }
+  }, [dispatch, jwt]);
+
+  useEffect(() => {
+    if (jwt) {
+      dispatch(getAllUserAddresses(jwt)); // Gọi API lấy danh sách tất cả địa chỉ
     }
   }, [dispatch, jwt]);
 
@@ -97,9 +110,7 @@ const Cart = () => {
 
   const handleOrder = () => {
     if (!selectedAddress || !paymentMethod) {
-      console.warn(
-        "Chọn địa chỉ và phương thức thanh toán trước khi thanh toán."
-      );
+      toast.warn("Chọn địa chỉ và phương thức thanh toán trước khi thanh toán.");
       return;
     }
 
@@ -118,11 +129,24 @@ const Cart = () => {
       paymentMethod: paymentMethod,
     };
 
-    dispatch(createOrder({ order: orderData, jwt }));
+    dispatch(createOrder({ order: orderData, jwt }))
+      .then(() => {
+        if (paymentMethod === "cod") {
+          toast.success("Đặt hàng thành công!");
+          setTimeout(() => {
+            navigate("/"); // Chuyển hướng về trang chủ
+          }, 2000); // Chờ 2 giây trước khi chuyển hướng
+        }
+      })
+      .catch((error) => {
+        toast.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        console.error("Order creation failed:", error);
+      });
   };
 
   return (
     <div>
+       <ToastContainer />
       <main className="lg:flex justify-between">
         {/* Cart Items Section */}
         <section className="lg:w-[30%] space-y-6 lg:min-h-screen pt-10">
@@ -154,30 +178,27 @@ const Cart = () => {
         {/* Address Selection Section */}
         <section className="lg:w-[70%] px-5 pb-10 lg:pb-0">
           <h1 className="text-center font-semibold text-2xl py-10">ĐỊA CHỈ</h1>
-          <div className="flex flex-wrap gap-4 justify-center items-center">
-            {address.addresses.map((item) => (
-              <Address
-                key={item.id}
-                handleSelectAddress={setSelectedAddress}
-                item={item}
-                showButton={true}
-              />
-            ))}
-            {/* Nút Thêm Địa Chỉ */}
-            <Card className="flex gap-5 w-64 p-5 items-center justify-center">
-              <AddLocationAltIcon />
-              <div className="space-y-3 text-gray-500 text-center">
-                <h1 className="font-semibold text-lg">Thêm địa chỉ</h1>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={handleOpenAddressModal}
-                >
-                  Thêm
-                </Button>
-              </div>
-            </Card>
-          </div>
+
+          {/* Dropdown danh sách địa chỉ */}
+          <FormControl fullWidth className="mb-4">
+            <InputLabel>Chọn địa chỉ</InputLabel>
+            <Select
+              value={selectedAddress}
+              onChange={(e) =>
+                setSelectedAddress(
+                  address.addresses.find((addr) => addr.id === e.target.value)
+                )
+              }
+              fullWidth
+            >
+              {address.addresses.map((addr) => (
+                <MenuItem key={addr.id} value={addr.id}>
+                  {`${addr.fullName} - ${addr.fullAddress}, ${addr.city}, ${addr.province}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           {selectedAddress && (
             <div className="bg-gray-100 p-5 rounded-md shadow-md mt-5 text-center">
               <h2 className="font-semibold mb-2">
@@ -218,6 +239,7 @@ const Cart = () => {
                 >
                   <MenuItem value="stripe">Stripe</MenuItem>
                   <MenuItem value="vnpay">VNPay</MenuItem>
+                  <MenuItem value="cod">Thanh toán khi nhận hàng</MenuItem>
                 </Select>
               </FormControl>
               <Button
@@ -233,42 +255,79 @@ const Cart = () => {
         </section>
       </main>
       <Modal open={open} onClose={handleClose}>
-  <Box sx={style}>
-    <h2 className="font-semibold text-xl mb-4 text-center">Thêm Địa Chỉ</h2>
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      <Form>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Field as={TextField} name="fullName" label="Họ và tên" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Field as={TextField} name="phone" label="Số điện thoại" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Field as={TextField} name="fullAddress" label="Địa chỉ chi tiết" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Field as={TextField} name="street" label="Đường" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Field as={TextField} name="city" label="Thành phố" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Field as={TextField} name="province" label="Tỉnh" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Field as={TextField} name="pincode" label="Mã bưu điện" fullWidth />
-          </Grid>
-          <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-              Thêm Địa Chỉ
-            </Button>
-          </Grid>
-        </Grid>
-      </Form>
-    </Formik>
-  </Box>
-</Modal>
+        <Box sx={style}>
+          <h2 className="font-semibold text-xl mb-4 text-center">
+            Thêm Địa Chỉ
+          </h2>
+          <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+            <Form>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="fullName"
+                    label="Họ và tên"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="phone"
+                    label="Số điện thoại"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="fullAddress"
+                    label="Địa chỉ chi tiết"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field as={TextField} name="street" label="Đường" fullWidth />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="city"
+                    label="Thành phố"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="province"
+                    label="Tỉnh"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="pincode"
+                    label="Mã bưu điện"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                  >
+                    Thêm Địa Chỉ
+                  </Button>
+                </Grid>
+              </Grid>
+            </Form>
+          </Formik>
+        </Box>
+      </Modal>
     </div>
   );
 };

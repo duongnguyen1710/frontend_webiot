@@ -1,5 +1,5 @@
 import { api } from "../../Config/Api";
-import { CREATE_ORDER_FAILURE, CREATE_ORDER_REQUEST, CREATE_ORDER_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS } from "./ActionType";
+import { CREATE_ORDER_FAILURE, CREATE_ORDER_REQUEST, CREATE_ORDER_SUCCESS, GET_ORDER_INVOICE_FAILURE, GET_ORDER_INVOICE_REQUEST, GET_ORDER_INVOICE_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS } from "./ActionType";
 
 export const createOrder = (reqData) => {
     return async (dispatch) => {
@@ -35,19 +35,54 @@ export const createOrder = (reqData) => {
 };
     
 
-export const getUsersOrders = (jwt) => {
+export const getUsersOrders = (jwt, page = 0, size = 10) => {
     return async (dispatch) => {
-        dispatch({type: GET_USERS_ORDERS_REQUEST});
+        dispatch({ type: GET_USERS_ORDERS_REQUEST });
         try {
-            const {data} = await api.get(`/api/orders/user`, {
-                headers:{
+            const { data } = await api.get(`/api/orders/userss?page=${page}&size=${size}`, {
+                headers: {
                     Authorization: `Bearer ${jwt}`,
                 },
             });
-            console.log("users order", data);
-            dispatch({type: GET_USERS_ORDERS_SUCCESS, payload:data});
+            console.log("User's orders with pagination:", data);
+            dispatch({ type: GET_USERS_ORDERS_SUCCESS, payload: data });
         } catch (error) {
-            dispatch({type: GET_USERS_ORDERS_FAILURE, payload:error});
+            console.error("Error fetching orders:", error);
+            dispatch({ type: GET_USERS_ORDERS_FAILURE, payload: error.message || "Failed to fetch orders" });
         }
-    }
-}
+    };
+};
+
+export const getOrderInvoice = (jwt, orderId) => {
+    return async (dispatch) => {
+        dispatch({ type: GET_ORDER_INVOICE_REQUEST });
+
+        try {
+            const response = await fetch(`/api/${orderId}/invoice`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Lỗi: ${response.status} - ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("Order Invoice Data:", data);
+
+            dispatch({
+                type: GET_ORDER_INVOICE_SUCCESS,
+                payload: data,
+            });
+        } catch (error) {
+            console.error("Error fetching invoice:", error);
+            dispatch({
+                type: GET_ORDER_INVOICE_FAILURE,
+                payload: error.message || 'Đã xảy ra lỗi khi lấy hóa đơn',
+            });
+        }
+    };
+};
