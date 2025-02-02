@@ -58,6 +58,7 @@ export default function Register() {
         setErrors({ email: error.message });
       } else {
         console.error("Unexpected error:", error.message);
+        console.log("Duongdez");
       }
     } finally {
       setIsSubmitting(false);
