@@ -9,6 +9,9 @@ import {
     REGISTER_FAILURE, 
     REGISTER_REQUEST, 
     REGISTER_SUCCESS, 
+    RESEND_EMAIL_FAILURE, 
+    RESEND_EMAIL_REQUEST, 
+    RESEND_EMAIL_SUCCESS, 
     VERIFY_USER_FAILURE, 
     VERIFY_USER_REQUEST,
     VERIFY_USER_SUCCESS
@@ -30,6 +33,7 @@ export const authReducer = (state = initialState, action) => {
             case LOGIN_REQUEST:
             case GET_USER_REQUEST:
             case VERIFY_USER_REQUEST:
+                case RESEND_EMAIL_REQUEST:
                 return { 
                     ...state, 
                     isLoading: true, 
@@ -66,6 +70,13 @@ export const authReducer = (state = initialState, action) => {
                         success: "Email verification successful",
                     };
 
+                    case RESEND_EMAIL_SUCCESS: // Gửi lại OTP thành công
+                    return {
+                        ...state,
+                        isLoading: false,
+                        success: "OTP resent successfully", // Thông báo gửi lại thành công
+                    };
+
             case LOGOUT:
                 // Xóa jwt khi logout
                 localStorage.removeItem("jwt");
@@ -75,6 +86,7 @@ export const authReducer = (state = initialState, action) => {
             case LOGIN_FAILURE:
             case GET_USER_FAILURE:
                 case VERIFY_USER_FAILURE:
+                    case RESEND_EMAIL_FAILURE:
                 return {
                     ...state,
                     isLoading: false,

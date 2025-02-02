@@ -1,31 +1,46 @@
 import axios from "axios"
 
 
-import {GET_USER_FAILURE, GET_USER_REQUEST, GET_USER_SUCCESS, LOGIN_FAILURE, LOGIN_REQUEST, LOGIN_SUCCESS, LOGOUT, REGISTER_FAILURE, REGISTER_REQUEST, REGISTER_SUCCESS, VERIFY_USER_FAILURE, VERIFY_USER_REQUEST, VERIFY_USER_SUCCESS } from "./ActionType"
+import {GET_USER_FAILURE, GET_USER_REQUEST, GET_USER_SUCCESS, LOGIN_FAILURE, LOGIN_REQUEST, LOGIN_SUCCESS, LOGOUT, REGISTER_FAILURE, REGISTER_REQUEST, REGISTER_SUCCESS, RESEND_EMAIL_FAILURE, RESEND_EMAIL_REQUEST, RESEND_EMAIL_SUCCESS, VERIFY_USER_FAILURE, VERIFY_USER_REQUEST, VERIFY_USER_SUCCESS } from "./ActionType"
 import { api, API_URL } from "../../Config/Api"
-
 
 
 export const registerUser = (reqData) => async (dispatch) => {
   dispatch({ type: REGISTER_REQUEST });
-  try {
-    const { data } = await axios.post(`${API_URL}/auth/signup`, reqData.userData);
 
-    if (data.jwt) {
+  try {
+    if (!reqData || !reqData.userData) {
+      throw new Error("Dữ liệu đăng ký không hợp lệ");
+    }
+
+    const { fullName = "", email = "", password = "", role = "ROLE_CUSTOMER" } = reqData.userData;
+    if (!email) {
+      throw new Error("Email không được để trống");
+    }
+
+    const { data } = await axios.post(`${API_URL}/auth/signup`, {
+      fullName,
+      email,
+      password,
+      role,
+    });
+
+    if (data?.jwt) {
       localStorage.setItem("jwt", data.jwt);
     }
 
-    if (data.role === "ROLE_CUSTOMER") {
-      // Chuyển sang trang xác thực email và truyền email qua state
-      reqData.navigate("/verify-email", { state: { email: reqData.userData.email } });
+    if (data?.role === "ROLE_CUSTOMER" && email) {
+      reqData.navigate("/verify-email", { state: { email } });
     }
 
     dispatch({ type: REGISTER_SUCCESS, payload: data.jwt });
-    console.log("register success", data);
-
+    console.log("Đăng ký thành công", data);
   } catch (error) {
-    dispatch({ type: REGISTER_FAILURE, payload: error.response?.data || "Đăng ký thất bại" });
-    console.log("error", error);
+    console.error("Lỗi đăng ký:", error);
+    dispatch({
+      type: REGISTER_FAILURE,
+      payload: error.response?.data || "Đăng ký thất bại",
+    });
   }
 };
 
@@ -118,4 +133,25 @@ export const verifyUser = (email, otp) => {
       });
     }
   };
+};
+
+export const resendOtp = (email) => async (dispatch) => {
+  dispatch({ type: RESEND_EMAIL_REQUEST });
+
+  try {
+    // Gửi yêu cầu API tới backend
+    const response = await api.post("/auth/resend", { email });
+
+    // Thành công
+    dispatch({
+      type: RESEND_EMAIL_SUCCESS,
+      payload: response.data, // Nội dung phản hồi từ backend
+    });
+  } catch (error) {
+    // Lỗi
+    dispatch({
+      type: RESEND_EMAIL_FAILURE,
+      payload: error.response?.data || "Đã xảy ra lỗi khi gửi lại OTP",
+    });
+  }
 };

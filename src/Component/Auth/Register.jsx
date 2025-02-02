@@ -10,7 +10,7 @@ export default function Register() {
     email: "",
     password: "",
     role: "ROLE_CUSTOMER",
-  });
+  } || {});
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,7 +25,7 @@ export default function Register() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email không hợp lệ";
     }
-    if (!formData.password) {
+    if (!formData.password || typeof formData.password !== "string") {
       newErrors.password = "Mật khẩu không được để trống";
     } else if (formData.password.length < 6) {
       newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
@@ -35,7 +35,10 @@ export default function Register() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value ?? "", // Tránh undefined
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -51,7 +54,7 @@ export default function Register() {
     try {
       await dispatch(registerUser({ userData: formData, navigate }));
     } catch (error) {
-      if (error.message.includes("Email")) {
+      if (error.message?.includes("Email")) {
         setErrors({ email: error.message });
       } else {
         console.error("Unexpected error:", error.message);
