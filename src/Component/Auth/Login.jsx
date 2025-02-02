@@ -13,9 +13,14 @@ const initialValues = {
 export default function Login() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const handleSubmit = (values) => {
-    dispatch(loginUser({userData:values,navigate}))
-  }
+  const handleSubmit = async (values) => {
+    try {
+      await dispatch(loginUser({ userData: values, navigate }));
+    } catch (error) {
+      console.error("Login Error:", error);
+    }
+  };
+  
   return (
     <div>
       <Typography variant="h5" className="text-center">

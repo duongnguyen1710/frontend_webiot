@@ -1,142 +1,335 @@
-'use client'
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  Divider,
+  Button,
+  Modal,
+  Box,
+  Grid,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
+import { useDispatch, useSelector } from "react-redux";
+import { removeCartItem, updateCartItem } from "../State/Cart/Action";
+import { CartItem } from "./CartItem";
+import { Address } from "./Address";
+import { createOrder } from "../State/Orders/Action";
+import {
+  createAddress,
+  fetchAddresses,
+  getAllUserAddresses,
+} from "../State/Address/Action";
+import { Field, Form, Formik } from "formik";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-import { useState } from 'react'
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  outline: "none",
+  boxShadow: 24,
+  p: 4,
+};
 
-const products = [
-  {
-    id: 1,
-    name: 'Throwback Hip Bag',
-    href: '#',
-    color: 'Salmon',
-    price: '$90.00',
-    quantity: 1,
-    imageSrc: 'https://tailwindui.com/plus/img/ecommerce-images/shopping-cart-page-04-product-01.jpg',
-    imageAlt: 'Salmon orange fabric pouch with match zipper, gray zipper pull, and adjustable hip belt.',
-  },
-  {
-    id: 2,
-    name: 'Medium Stuff Satchel',
-    href: '#',
-    color: 'Blue',
-    price: '$32.00',
-    quantity: 1,
-    imageSrc: 'https://tailwindui.com/plus/img/ecommerce-images/shopping-cart-page-04-product-02.jpg',
-    imageAlt:
-      'Front of satchel with blue canvas body, black straps and handle, drawstring top, and front zipper pouch.',
-  },
-  // More products...
-]
+const initialValues = {
+  fullName: "",
+  phone: "",
+  fullAddress: "",
+  street: "",
+  city: "",
+  province: "",
+  pincode: "",
+};
 
-export default function Cart({ open, setOpen }) {
+const Cart = () => {
+  const [open, setOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("");
+
+  const { cart, address } = useSelector((store) => store);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const jwt = localStorage.getItem("jwt");
+
+  // Fetch danh sách địa chỉ khi component mount
+  useEffect(() => {
+    if (jwt) {
+      dispatch(fetchAddresses(jwt));
+    }
+  }, [dispatch, jwt]);
+
+  useEffect(() => {
+    if (jwt) {
+      dispatch(getAllUserAddresses(jwt)); // Gọi API lấy danh sách tất cả địa chỉ
+    }
+  }, [dispatch, jwt]);
+
+  const handleOpenAddressModal = () => {
+    console.log("Open Address Modal clicked"); // Kiểm tra trong console
+    setOpen(true);
+  };
+
+  const handleClose = () => setOpen(false);
+
+  // Tính tổng tiền giỏ hàng
+  const calculateTotalPrice = () => {
+    return cart.cartItems.reduce((total, item) => total + item.totalPrice, 0);
+  };
+
+  const shippingFee = 30000; // Phí ship cố định
+
+  const handleSubmit = (values, { resetForm }) => {
+    const addressData = {
+      fullName: values.fullName,
+      phone: values.phone,
+      fullAddress: values.fullAddress,
+      street: values.street,
+      city: values.city,
+      province: values.province,
+      pincode: values.pincode,
+    };
+
+    dispatch(createAddress(addressData, jwt))
+      .then(() => {
+        dispatch(fetchAddresses(jwt));
+        resetForm();
+        handleClose();
+      })
+      .catch((error) => {
+        console.error("Failed to create address:", error);
+      });
+  };
+
+  const handleOrder = () => {
+    if (!selectedAddress || !paymentMethod) {
+      toast.warn("Chọn địa chỉ và phương thức thanh toán trước khi thanh toán.");
+      return;
+    }
+
+    const orderData = {
+      restaurantId: cart.cartItems[0]?.product?.restaurant?.id || 1,
+      deliveryAddress: {
+        id: selectedAddress.id,
+        fullName: selectedAddress.fullName,
+        phone: selectedAddress.phone,
+        fullAddress: selectedAddress.fullAddress,
+        street: selectedAddress.street,
+        city: selectedAddress.city,
+        province: selectedAddress.province,
+        pincode: selectedAddress.pincode,
+      },
+      paymentMethod: paymentMethod,
+    };
+
+    dispatch(createOrder({ order: orderData, jwt }))
+      .then(() => {
+        if (paymentMethod === "cod") {
+          toast.success("Đặt hàng thành công!");
+          setTimeout(() => {
+            navigate("/"); // Chuyển hướng về trang chủ
+          }, 2000); // Chờ 2 giây trước khi chuyển hướng
+        }
+      })
+      .catch((error) => {
+        toast.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        console.error("Order creation failed:", error);
+      });
+  };
+
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} className="relative z-10">
-      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-
-      <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-            <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-              <div className="flex h-full flex-col bg-white shadow-xl">
-                <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-                  <div className="flex items-start justify-between">
-                    <Dialog.Title className="text-lg font-medium text-gray-900">
-                      Giỏ hàng
-                    </Dialog.Title>
-                    <div className="ml-3 flex h-7 items-center">
-                      <button
-                        type="button"
-                        className="-m-2 p-2 text-gray-400 hover:text-gray-500"
-                        onClick={() => setOpen(false)}
-                      >
-                        <span className="sr-only">Close panel</span>
-                        <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mt-8">
-                    <div className="flow-root">
-                      <ul role="list" className="-my-6 divide-y divide-gray-200">
-                        {products.map((product) => (
-                          <li key={product.id} className="flex py-6">
-                            <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                              <img
-                                src={product.imageSrc}
-                                alt={product.imageAlt}
-                                className="h-full w-full object-cover object-center"
-                              />
-                            </div>
-
-                            <div className="ml-4 flex flex-1 flex-col">
-                              <div>
-                                <div className="flex justify-between text-base font-medium text-gray-900">
-                                  <h3>
-                                    <a href={product.href}>{product.name}</a>
-                                  </h3>
-                                  <p className="ml-4">{product.price}</p>
-                                </div>
-                                <p className="mt-1 text-sm text-gray-500">{product.color}</p>
-                              </div>
-                              <div className="flex flex-1 items-end justify-between text-sm">
-                                <p className="text-gray-500">Số lượng: {product.quantity}</p>
-
-                                <div className="flex">
-                                  <button
-                                    type="button"
-                                    className="font-medium text-indigo-600 hover:text-indigo-500"
-                                  >
-                                    Xóa
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-                  <div className="flex justify-between text-base font-medium text-gray-900">
-                    <p>Tổng tiền</p>
-                    <p>
-                      $
-                      {products.reduce(
-                        (total, product) =>
-                          total + parseFloat(product.price.replace('$', '')) * product.quantity,
-                        0
-                      ).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="mt-6">
-                    <button
-                      className="flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
-                    >
-                      Thanh toán
-                    </button>
-                  </div>
-                  <div className="mt-6 flex justify-center text-sm text-gray-500">
-                    <p>
-                      hoặc{' '}
-                      <button
-                        type="button"
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                        onClick={() => setOpen(false)}
-                      >
-                        Tiếp tục mua sắm
-                        <span aria-hidden="true"> &rarr;</span>
-                      </button>
-                    </p>
-                  </div>
-                </div>
+    <div>
+       <ToastContainer />
+      <main className="lg:flex justify-between">
+        {/* Cart Items Section */}
+        <section className="lg:w-[30%] space-y-6 lg:min-h-screen pt-10">
+          {cart.cartItems.map((item) => (
+            <CartItem key={item.id} item={item} />
+          ))}
+          <Divider />
+          {/* Chi Tiết Đơn Hàng */}
+          <div className="billDetails px-5 text-sm">
+            <p className="font-extralight py-5">Chi tiết đơn hàng</p>
+            <div className="space-y-3">
+              <div className="flex justify-between text-gray-500">
+                <p>Tổng tiền:</p>
+                <p>{calculateTotalPrice()} VNĐ</p>
               </div>
-            </Dialog.Panel>
+              <div className="flex justify-between text-gray-400">
+                <p>Phí ship:</p>
+                <p>{shippingFee} VNĐ</p>
+              </div>
+              <Divider />
+              <div className="flex justify-between text-gray-500 font-bold">
+                <p>Tổng cộng:</p>
+                <p>{calculateTotalPrice() + shippingFee} VNĐ</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </Dialog>
+        </section>
+
+        {/* Address Selection Section */}
+        <section className="lg:w-[70%] px-5 pb-10 lg:pb-0">
+          <h1 className="text-center font-semibold text-2xl py-10">ĐỊA CHỈ</h1>
+
+          {/* Dropdown danh sách địa chỉ */}
+          <FormControl fullWidth className="mb-4">
+            <InputLabel>Chọn địa chỉ</InputLabel>
+            <Select
+              value={selectedAddress}
+              onChange={(e) =>
+                setSelectedAddress(
+                  address.addresses.find((addr) => addr.id === e.target.value)
+                )
+              }
+              fullWidth
+            >
+              {address.addresses.map((addr) => (
+                <MenuItem key={addr.id} value={addr.id}>
+                  {`${addr.fullName} - ${addr.fullAddress}, ${addr.city}, ${addr.province}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {selectedAddress && (
+            <div className="bg-gray-100 p-5 rounded-md shadow-md mt-5 text-center">
+              <h2 className="font-semibold mb-2">
+                Thông Tin Địa Chỉ Giao Hàng
+              </h2>
+              <div className="text-left space-y-2 mb-4">
+                <p>
+                  <strong>Họ và Tên:</strong> {selectedAddress.fullName}
+                </p>
+                <p>
+                  <strong>Số Điện Thoại:</strong> {selectedAddress.phone}
+                </p>
+                <p>
+                  <strong>Địa Chỉ:</strong> {selectedAddress.fullAddress}
+                </p>
+                <p>
+                  <strong>Đường:</strong> {selectedAddress.street}
+                </p>
+                <p>
+                  <strong>Thành Phố:</strong> {selectedAddress.city}
+                </p>
+                <p>
+                  <strong>Tỉnh:</strong> {selectedAddress.province}
+                </p>
+                <p>
+                  <strong>Mã Bưu Điện:</strong> {selectedAddress.pincode}
+                </p>
+              </div>
+
+              <h2 className="font-semibold mb-2">
+                Chọn Phương Thức Thanh Toán
+              </h2>
+              <FormControl fullWidth className="mb-4">
+                <InputLabel>Phương thức thanh toán</InputLabel>
+                <Select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
+                  <MenuItem value="stripe">Stripe</MenuItem>
+                  <MenuItem value="vnpay">VNPay</MenuItem>
+                  <MenuItem value="cod">Thanh toán khi nhận hàng</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleOrder}
+              >
+                Tiến Hành Thanh Toán
+              </Button>
+            </div>
+          )}
+        </section>
+      </main>
+      <Modal open={open} onClose={handleClose}>
+        <Box sx={style}>
+          <h2 className="font-semibold text-xl mb-4 text-center">
+            Thêm Địa Chỉ
+          </h2>
+          <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+            <Form>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="fullName"
+                    label="Họ và tên"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="phone"
+                    label="Số điện thoại"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="fullAddress"
+                    label="Địa chỉ chi tiết"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field as={TextField} name="street" label="Đường" fullWidth />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="city"
+                    label="Thành phố"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="province"
+                    label="Tỉnh"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    name="pincode"
+                    label="Mã bưu điện"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                  >
+                    Thêm Địa Chỉ
+                  </Button>
+                </Grid>
+              </Grid>
+            </Form>
+          </Formik>
+        </Box>
+      </Modal>
+    </div>
   );
-}
+};
+
+export default Cart;

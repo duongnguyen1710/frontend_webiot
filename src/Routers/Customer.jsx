@@ -9,8 +9,15 @@ import ProductDetail from "../Component/Product/ProductDetail";
 import ProductByCategory from "../Component/Product/ProductByCategory";
 import Order from "../Component/Order/Order";
 import ListBlog from "../Component/Blog/ListBlog";
-import Category from "../Component/Category/Category";
-import NewProduct from "../Component/Home/NewProduct";
+import Cart from "../Component/Cart/Cart";
+import { PaymentSuccess } from "../Component/Payment/PaymentSuccess";
+import { PaymentFailed } from "../Component/Payment/PaymentFailed";
+import ProfileAddress from "../Component/Profile/ProfileAddress";
+import BlogDetail from "../Component/Blog/BlogDetail";
+import VnPayResult from "../Component/Payment/VnPayResult/VnPayResult";
+import Login from "../Component/Authentication/Login";
+import Register from "../Component/Authentication/Register";
+import VerifyEmail from "../Component/Authentication/VerifyEmail";
 
 
 const Customer = () => {
@@ -20,16 +27,23 @@ const Customer = () => {
         <Navbar />
       </header>
 
-      <main className="flex-1 mt-[64px] mb-[64px]"> 
+      <main className="flex-1 mt-[64px] mb-[64px] overflow-hidden"> 
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/:register" element={<Home />} />
           <Route path="/profile/*" element={<Profile />} />
-          <Route path='/detail/:id' element={<ProductDetail />} />
-          <Route path="/product" element={<ProductByCategory />} />
+          <Route path='/detail/:productId' element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/order" element={<Order />} />
           <Route path="/blog" element={<ListBlog />} />
-          <Route path="/category" element={<Category />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
+          <Route path='/product/:categoryId/:restaurantId' element={<ProductByCategory />} />
+          <Route path="/payment/success/:id" element={<PaymentSuccess />} />
+          <Route path="/payment/fail" element={<PaymentFailed />} />
+          <Route path="/payment/success" element={<VnPayResult />} />
+          {/* <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} /> */}
+          <Route path="/verify" element={<VerifyEmail />} />
         </Routes>
       </main>
 
