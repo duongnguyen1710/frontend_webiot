@@ -1,7 +1,7 @@
 import axios from "axios"
 
 
-import {GET_USER_FAILURE, GET_USER_REQUEST, GET_USER_SUCCESS, LOGIN_FAILURE, LOGIN_REQUEST, LOGIN_SUCCESS, LOGOUT, REGISTER_FAILURE, REGISTER_REQUEST, REGISTER_SUCCESS, RESEND_EMAIL_FAILURE, RESEND_EMAIL_REQUEST, RESEND_EMAIL_SUCCESS, VERIFY_USER_FAILURE, VERIFY_USER_REQUEST, VERIFY_USER_SUCCESS } from "./ActionType"
+import {GET_USER_FAILURE, GET_USER_REQUEST, GET_USER_SUCCESS, LOGIN_FAILURE, LOGIN_REQUEST, LOGIN_SUCCESS, LOGOUT, REGISTER_FAILURE, REGISTER_REQUEST, REGISTER_SUCCESS, RESEND_EMAIL_FAILURE, RESEND_EMAIL_REQUEST, RESEND_EMAIL_SUCCESS, RESET_PASSWORD_FAILURE, RESET_PASSWORD_REQUEST, RESET_PASSWORD_SUCCESS, SEND_OTP_FORGOT_PASSWORD_FAILURE, SEND_OTP_FORGOT_PASSWORD_REQUEST, SEND_OTP_FORGOT_PASSWORD_SUCCESS, VERIFY_OTP_FORGOT_PASSWORD_FAILURE, VERIFY_OTP_FORGOT_PASSWORD_REQUEST, VERIFY_OTP_FORGOT_PASSWORD_SUCCESS, VERIFY_USER_FAILURE, VERIFY_USER_REQUEST, VERIFY_USER_SUCCESS } from "./ActionType"
 import { api, API_URL } from "../../Config/Api"
 
 
@@ -152,6 +152,68 @@ export const resendOtp = (email) => async (dispatch) => {
     dispatch({
       type: RESEND_EMAIL_FAILURE,
       payload: error.response?.data || "Đã xảy ra lỗi khi gửi lại OTP",
+    });
+  }
+};
+
+export const sendOtpForgotPassword = (email) => async (dispatch) => {
+  dispatch({ type: SEND_OTP_FORGOT_PASSWORD_REQUEST });
+
+  try {
+    const response = await api.post("/auth/forgot-password", { email });
+
+    dispatch({
+      type: SEND_OTP_FORGOT_PASSWORD_SUCCESS,
+      payload: response.data, // Thông báo từ server
+    });
+  } catch (error) {
+    dispatch({
+      type: SEND_OTP_FORGOT_PASSWORD_FAILURE,
+      payload: error.response?.data || "Có lỗi xảy ra!",
+    });
+  }
+};
+
+export const verifyOtpForgotPassword = ({ email, otp }) => async (dispatch) => {
+  dispatch({ type: VERIFY_OTP_FORGOT_PASSWORD_REQUEST });
+
+  try {
+    const response = await api.post("/auth/verify-reset-password", { email, opt: otp });
+
+    console.log("✅ Xác thực OTP thành công:", response.data); // Log nếu OTP hợp lệ
+
+    dispatch({
+      type: VERIFY_OTP_FORGOT_PASSWORD_SUCCESS,
+      payload: response.data, // "Mã OTP hợp lệ! Bạn có thể đặt lại mật khẩu."
+    });
+  } catch (error) {
+    console.error("❌ Xác thực OTP thất bại:", error.response?.data || "OTP không hợp lệ!"); // Log nếu OTP sai
+
+    dispatch({
+      type: VERIFY_OTP_FORGOT_PASSWORD_FAILURE,
+      payload: error.response?.data || "OTP không hợp lệ!",
+    });
+  }
+};
+
+export const resetPassword = ({ email, newPassword }) => async (dispatch) => {
+  dispatch({ type: RESET_PASSWORD_REQUEST });
+
+  try {
+    const response = await api.post("/auth/reset-password", { email, newPassword });
+
+    console.log("✅ Đặt lại mật khẩu thành công:", response.data); // Log nếu thành công
+
+    dispatch({
+      type: RESET_PASSWORD_SUCCESS,
+      payload: response.data, // "Mật khẩu đã được đặt lại thành công!"
+    });
+  } catch (error) {
+    console.error("❌ Đặt lại mật khẩu thất bại:", error.response?.data || "Có lỗi xảy ra!");
+
+    dispatch({
+      type: RESET_PASSWORD_FAILURE,
+      payload: error.response?.data || "Có lỗi xảy ra!",
     });
   }
 };
