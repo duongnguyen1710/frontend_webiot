@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
 import VerifyEmail from "./VerifyEmail";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 
 const style = {
   position: "absolute",
@@ -16,6 +18,7 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
+
 export const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,7 +33,9 @@ export const Auth = () => {
         open={
           location.pathname === "/register" ||
           location.pathname === "/login" ||
-          location.pathname === "/verify-email"
+          location.pathname === "/verify-email" ||
+          location.pathname === "/forgotpassword" ||
+          location.pathname === "/resetpassword" // Thêm đường dẫn Reset Password
         }
       >
         <Box sx={style}>
@@ -38,8 +43,12 @@ export const Auth = () => {
             <Register />
           ) : location.pathname === "/login" ? (
             <Login />
-          ) : (
+          ) : location.pathname === "/verify-email" ? (
             <VerifyEmail />
+          ) : location.pathname === "/forgotpassword" ? (
+            <ForgotPassword />
+          ) : (
+            <ResetPassword />
           )}
         </Box>
       </Modal>

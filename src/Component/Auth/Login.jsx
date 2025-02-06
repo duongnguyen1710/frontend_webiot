@@ -5,14 +5,15 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../State/Auth/Action";
 
-
 const initialValues = {
   email: "",
-  Password: "",
+  password: "",
 };
+
 export default function Login() {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const handleSubmit = async (values) => {
     try {
       await dispatch(loginUser({ userData: values, navigate }));
@@ -20,7 +21,7 @@ export default function Login() {
       console.error("Login Error:", error);
     }
   };
-  
+
   return (
     <div>
       <Typography variant="h5" className="text-center">
@@ -40,7 +41,7 @@ export default function Login() {
             as={TextField}
             name="password"
             label="Mật khẩu"
-            type="Password"
+            type="password"
             fullWidth
             variant="outlined"
             margin="normal"
@@ -55,12 +56,19 @@ export default function Login() {
           </Button>
         </Form>
       </Formik>
+
       <Typography variant="body2" align="center" sx={{ mt: 3 }}>
         Bạn chưa có tài khoản?
         <Button size="small" onClick={() => navigate("/register")}>
           Đăng ký
         </Button>
       </Typography>
+
+      <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+        <Button size="small" onClick={() => navigate("/forgotpassword")}>
+          Quên mật khẩu?
+        </Button>
+      </Typography>
     </div>
   );
-};
+}
