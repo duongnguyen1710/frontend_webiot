@@ -18,6 +18,7 @@ import VnPayResult from "../Component/Payment/VnPayResult/VnPayResult";
 import Login from "../Component/Authentication/Login";
 import Register from "../Component/Authentication/Register";
 import VerifyEmail from "../Component/Authentication/VerifyEmail";
+import ZaloPayResult from "../Component/Payment/ZaloPayResult/ZaloPayResult";
 
 
 const Customer = () => {
@@ -41,6 +42,7 @@ const Customer = () => {
           <Route path="/payment/success/:id" element={<PaymentSuccess />} />
           <Route path="/payment/fail" element={<PaymentFailed />} />
           <Route path="/payment/success" element={<VnPayResult />} />
+          <Route path="/payment/zalopay/result" element={<ZaloPayResult />} />
           {/* <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} /> */}
           <Route path="/verify" element={<VerifyEmail />} />
