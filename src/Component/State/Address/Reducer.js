@@ -72,26 +72,26 @@ const initialState = {
         error: action.payload, // Lưu lỗi vào state
       };
 
-      // case GET_ALL_ADDRESS_USER_REQUEST:
-      //   return {
-      //     ...state,
-      //     loading: true,
-      //     error: null,
-      //   };
+      case GET_ALL_ADDRESS_USER_REQUEST:
+        return {
+          ...state,
+          loading: true,
+          error: null,
+        };
   
-      // case GET_ALL_ADDRESS_USER_SUCCESS:
-      //   return {
-      //     ...state,
-      //     loading: false,
-      //     addresses: action.payload, // Cập nhật danh sách địa chỉ
-      //   };
+      case GET_ALL_ADDRESS_USER_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          addresses: action.payload, // Cập nhật danh sách địa chỉ
+        };
   
-      // case GET_ALL_ADDRESS_USER_FAILURE:
-      //   return {
-      //     ...state,
-      //     loading: false,
-      //     error: action.payload,
-      //   };
+      case GET_ALL_ADDRESS_USER_FAILURE:
+        return {
+          ...state,
+          loading: false,
+          error: action.payload,
+        };
       case DELETE_ADDRESS_REQUEST:
       return {
         ...state,

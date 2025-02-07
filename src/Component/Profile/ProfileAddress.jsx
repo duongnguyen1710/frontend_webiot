@@ -28,6 +28,8 @@ const ProfileAddress = () => {
     }
   }, [dispatch, currentPage]);
 
+  
+
   const getPageNumbers = () => {
     const maxPagesToShow = 3;
     const pageNumbers = [];
@@ -95,7 +97,7 @@ const ProfileAddress = () => {
       alert("Bạn cần đăng nhập để thêm địa chỉ.");
       return;
     }
-
+  
     try {
       if (isEditMode && currentEditId) {
         await dispatch(updateAddress(currentEditId, newAddress, token));
@@ -104,12 +106,16 @@ const ProfileAddress = () => {
         await dispatch(createAddress(newAddress, token));
         alert("Thêm địa chỉ thành công.");
       }
-      handleClosePopup();
+      
+      handleClosePopup(); // Đóng popup sau khi lưu
+      dispatch(getUserAddresses(token, currentPage)); // Load lại danh sách địa chỉ
+  
     } catch (error) {
       console.error("Error saving address:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
+  
 
   const handleDeleteAddress = async (id) => {
     const token = localStorage.getItem("jwt");

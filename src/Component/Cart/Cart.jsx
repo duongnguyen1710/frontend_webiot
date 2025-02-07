@@ -60,17 +60,18 @@ const Cart = () => {
   const jwt = localStorage.getItem("jwt");
 
   // Fetch danh sách địa chỉ khi component mount
-  useEffect(() => {
-    if (jwt) {
-      dispatch(fetchAddresses(jwt));
-    }
-  }, [dispatch, jwt]);
+  // useEffect(() => {
+  //   if (jwt) {
+  //     dispatch(fetchAddresses(jwt));
+  //   }
+  // }, [dispatch, jwt]);
 
   useEffect(() => {
     if (jwt) {
-      dispatch(getAllUserAddresses(jwt)); // Gọi API lấy danh sách tất cả địa chỉ
+      dispatch(getAllUserAddresses(jwt)); // Gọi API lấy tất cả địa chỉ
     }
   }, [dispatch, jwt]);
+  
 
   const handleOpenAddressModal = () => {
     console.log("Open Address Modal clicked"); // Kiểm tra trong console
@@ -86,7 +87,13 @@ const Cart = () => {
 
   const shippingFee = 30000; // Phí ship cố định
 
-  const handleSubmit = (values, { resetForm }) => {
+  const handleSubmit = async (values, { resetForm }) => {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      toast.warn("Bạn cần đăng nhập để thêm địa chỉ.");
+      return;
+    }
+
     const addressData = {
       fullName: values.fullName,
       phone: values.phone,
@@ -97,20 +104,26 @@ const Cart = () => {
       pincode: values.pincode,
     };
 
-    dispatch(createAddress(addressData, jwt))
-      .then(() => {
-        dispatch(fetchAddresses(jwt));
-        resetForm();
-        handleClose();
-      })
-      .catch((error) => {
-        console.error("Failed to create address:", error);
-      });
+    try {
+      await dispatch(createAddress(addressData, token));
+
+      // Cập nhật danh sách địa chỉ ngay sau khi thêm mới thành công
+      await dispatch(getAllUserAddresses(token));
+
+      toast.success("Thêm địa chỉ thành công!");
+      resetForm();
+      handleClose();
+    } catch (error) {
+      console.error("Failed to create address:", error);
+      toast.error("Thêm địa chỉ thất bại. Vui lòng thử lại.");
+    }
   };
 
   const handleOrder = () => {
     if (!selectedAddress || !paymentMethod) {
-      toast.warn("Chọn địa chỉ và phương thức thanh toán trước khi thanh toán.");
+      toast.warn(
+        "Chọn địa chỉ và phương thức thanh toán trước khi thanh toán."
+      );
       return;
     }
 
@@ -146,7 +159,7 @@ const Cart = () => {
 
   return (
     <div>
-       <ToastContainer />
+      <ToastContainer />
       <main className="lg:flex justify-between">
         {/* Cart Items Section */}
         <section className="lg:w-[30%] space-y-6 lg:min-h-screen pt-10">
@@ -180,16 +193,32 @@ const Cart = () => {
           <h1 className="text-center font-semibold text-2xl py-10">ĐỊA CHỈ</h1>
 
           {/* Dropdown danh sách địa chỉ */}
-          <FormControl fullWidth className="mb-4">
+          <FormControl
+            fullWidth
+            className="mb-4"
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
             <InputLabel>Chọn địa chỉ</InputLabel>
             <Select
-              value={selectedAddress}
+              value={selectedAddress?.id || ""}
               onChange={(e) =>
                 setSelectedAddress(
                   address.addresses.find((addr) => addr.id === e.target.value)
                 )
               }
               fullWidth
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    maxHeight: 200, // Giới hạn chiều cao dropdown để cuộn khi có nhiều địa chỉ
+                    overflowY: "auto",
+                  },
+                },
+              }}
             >
               {address.addresses.map((addr) => (
                 <MenuItem key={addr.id} value={addr.id}>
@@ -197,6 +226,16 @@ const Cart = () => {
                 </MenuItem>
               ))}
             </Select>
+
+            {/* Nút "+" mở form thêm địa chỉ */}
+            <Button
+              onClick={handleOpenAddressModal}
+              variant="contained"
+              color="primary"
+              style={{ marginLeft: "10px", minWidth: "40px", height: "40px" }}
+            >
+              +
+            </Button>
           </FormControl>
 
           {selectedAddress && (
@@ -222,9 +261,6 @@ const Cart = () => {
                 </p>
                 <p>
                   <strong>Tỉnh:</strong> {selectedAddress.province}
-                </p>
-                <p>
-                  <strong>Mã Bưu Điện:</strong> {selectedAddress.pincode}
                 </p>
               </div>
 
