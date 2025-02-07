@@ -16,8 +16,8 @@ export const createOrder = (reqData) => {
                 window.location.href = data.stripe_url;
             } else if (data.paypal_url) {
                 window.location.href = data.paypal_url;
-            } else if (data.zalopay_url) {
-                window.location.href = data.zalopay_url;
+            } else if (data.orderUrl) {
+                window.location.href = data.orderUrl;
             } else if (data.momo_url) {
                 window.location.href = data.momo_url;
             } else if (data.onepay_url) { 

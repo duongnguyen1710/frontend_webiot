@@ -275,6 +275,7 @@ const Cart = () => {
                 >
                   <MenuItem value="stripe">Stripe</MenuItem>
                   <MenuItem value="vnpay">VNPay</MenuItem>
+                  <MenuItem value="zalopay">Zalopay</MenuItem>
                   <MenuItem value="cod">Thanh toán khi nhận hàng</MenuItem>
                 </Select>
               </FormControl>
