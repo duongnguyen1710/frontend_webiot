@@ -14,6 +14,7 @@ import addressReducer from "./Address/Reducer";
 import { ratingReducer } from "./Rating/Reducer";
 import authenticationReducer from "./Authentication/Reducer";
 import { zaloPayReducer } from "./Payment/ZaloPay/Reducer";
+import { profileReducer } from "./User/Reducer";
 //import restaurantReducer from "./Restaurant/Reducer";
 //import menuItemReducer from "./Menu/Reducer";
 //import cartReducer from "./Cart/Reducer";
@@ -33,7 +34,8 @@ const rooteReducer = combineReducers({
    vnpay: vnPayReducer,
    address:addressReducer,
    rating: ratingReducer,
-   zaloPay: zaloPayReducer
+   zaloPay: zaloPayReducer,
+   profile: profileReducer
 });
 
 export const store =legacy_createStore(rooteReducer,applyMiddleware(thunk))
