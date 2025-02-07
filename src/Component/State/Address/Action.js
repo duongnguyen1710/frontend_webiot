@@ -35,7 +35,7 @@ export const createAddress1 = (addressData, token) => {
             console.error("Error creating address", error);
             dispatch({ 
                 type: CREATE_ADDRESS_FAILURE, 
-                payload: error.response?.data?.message || error.message 
+                payload: error.response?.data?.message || error.message
             });
         }
     };
