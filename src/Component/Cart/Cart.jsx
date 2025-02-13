@@ -121,12 +121,10 @@ const Cart = () => {
 
   const handleOrder = () => {
     if (!selectedAddress || !paymentMethod) {
-      toast.warn(
-        "Chọn địa chỉ và phương thức thanh toán trước khi thanh toán."
-      );
+      toast.warn("Chọn địa chỉ và phương thức thanh toán trước khi thanh toán.");
       return;
     }
-
+  
     const orderData = {
       restaurantId: cart.cartItems[0]?.product?.restaurant?.id || 1,
       deliveryAddress: {
@@ -141,14 +139,17 @@ const Cart = () => {
       },
       paymentMethod: paymentMethod,
     };
-
+  
     dispatch(createOrder({ order: orderData, jwt }))
       .then(() => {
+        // 🛑 Xoá giỏ hàng ngay lập tức sau khi đặt hàng thành công
+        dispatch({ type: "CLEAR_CART" });
+  
         if (paymentMethod === "cod") {
           toast.success("Đặt hàng thành công!");
           setTimeout(() => {
-            navigate("/"); // Chuyển hướng về trang chủ
-          }, 2000); // Chờ 2 giây trước khi chuyển hướng
+            navigate("/");
+          }, 2000);
         }
       })
       .catch((error) => {
@@ -156,6 +157,7 @@ const Cart = () => {
         console.error("Order creation failed:", error);
       });
   };
+  
 
   return (
     <div>

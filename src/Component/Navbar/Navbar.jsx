@@ -160,12 +160,10 @@ export default function Navbar() {
                 className="relative p-1 rounded-full bg-gray-800 text-gray-400 hover:text-white"
                 onClick={() => navigate("/cart")}
               >
-                <Badge
-                  badgeContent={cart.cart?.items?.length || 0}
-                  color="error"
-                >
-                  <ShoppingCartIcon className="h-6 w-6" />
-                </Badge>
+                <Badge badgeContent={cart.cartItems.length} color="error">
+  <ShoppingCartIcon className="h-6 w-6" />
+</Badge>
+
               </button>
 
               {/* Hồ sơ */}

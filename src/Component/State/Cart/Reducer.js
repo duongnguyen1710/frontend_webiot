@@ -95,6 +95,10 @@ const cartReducer = (state = initialState, action) => {
         success: "logout success",
       };
 
+      case "CLEAR_CART": // 🛑 Xoá giỏ hàng khi đặt hàng thành công
+      return { ...state, cartItems: [] };
+
+
     default:
       return state;
   }
