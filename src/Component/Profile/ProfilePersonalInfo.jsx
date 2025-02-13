@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUser} from "../State/Auth/Action";
+import { getUser } from "../State/Auth/Action";
 import { Modal, Box, TextField, Button } from "@mui/material";
 import { updateUserProfile } from "../State/User/Action";
+import { changePassword } from "../State/User/Action"; // Import action đổi mật khẩu
 
 const style = {
   position: "absolute",
@@ -19,12 +20,16 @@ const style = {
 const ProfilePersonalInfo = () => {
   const dispatch = useDispatch();
   const { user, loading, error } = useSelector((state) => state.auth);
+  const { success, error: passwordError, message } = useSelector((state) => state.profile);
   const jwt = localStorage.getItem("jwt");
 
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState("");
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     if (jwt) {
@@ -42,13 +47,16 @@ const ProfilePersonalInfo = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
-    setSelectedFile(null); // Reset file chọn
+    setSelectedFile(null);
+    setShowChangePassword(false); // Đóng form đổi mật khẩu
+    setCurrentPassword("");
+    setNewPassword("");
   };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
-    setPreviewAvatar(URL.createObjectURL(file)); // Hiển thị ảnh trước khi upload
+    setPreviewAvatar(URL.createObjectURL(file));
   };
 
   const handleSave = () => {
@@ -58,8 +66,12 @@ const ProfilePersonalInfo = () => {
       formData.append("avatar", selectedFile);
     }
 
-    dispatch(updateUserProfile(user.id, formData)); // Gửi formData thay vì JSON
+    dispatch(updateUserProfile(user.id, formData));
     handleClose();
+  };
+
+  const handleChangePassword = () => {
+    dispatch(changePassword(currentPassword, newPassword));
   };
 
   return (
@@ -72,19 +84,14 @@ const ProfilePersonalInfo = () => {
         <p className="text-red-500">❌ {error}</p>
       ) : (
         <div className="flex items-center space-x-6">
-          {/* Avatar */}
           <img
             src={user?.avatar || "https://via.placeholder.com/150"}
             alt="Avatar"
             className="w-24 h-24 rounded-full border border-gray-300 shadow-sm"
           />
-
-          {/* Thông tin người dùng */}
           <div>
             <p className="text-lg font-semibold">{user?.fullName || "Không có tên"}</p>
             <p className="text-gray-600">{user?.email || "Không có email"}</p>
-
-            {/* Nút chỉnh sửa */}
             <button
               onClick={handleOpen}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -100,7 +107,6 @@ const ProfilePersonalInfo = () => {
         <Box sx={style}>
           <h2 className="text-lg font-bold mb-4">Chỉnh sửa thông tin</h2>
 
-          {/* Hiển thị avatar preview */}
           <div className="text-center mb-4">
             <img src={previewAvatar} alt="Avatar Preview" className="w-24 h-24 rounded-full mx-auto" />
           </div>
@@ -113,21 +119,57 @@ const ProfilePersonalInfo = () => {
             className="mb-3"
           />
 
-          {/* Input chọn file */}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mb-3"
-          />
+          <input type="file" accept="image/*" onChange={handleFileChange} className="mb-3" />
 
-          <div className="flex justify-end gap-2">
+          {/* Nút đổi mật khẩu */}
+          {!showChangePassword && (
+            <Button
+              onClick={() => setShowChangePassword(true)}
+              variant="outlined"
+              color="primary"
+              fullWidth
+              className="mb-3"
+            >
+              Đổi mật khẩu
+            </Button>
+          )}
+
+          {/* Form đổi mật khẩu */}
+          {showChangePassword && (
+            <>
+              <TextField
+                fullWidth
+                label="Mật khẩu hiện tại"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="mb-3"
+              />
+              <TextField
+                fullWidth
+                label="Mật khẩu mới"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="mb-3"
+              />
+              {passwordError && <p className="text-red-500">{passwordError}</p>}
+              {success && <p className="text-green-500">{message}</p>}
+              <Button onClick={handleChangePassword} variant="contained" color="primary" fullWidth>
+                Xác nhận đổi mật khẩu
+              </Button>
+            </>
+          )}
+
+          <div className="flex justify-end gap-2 mt-4">
             <Button onClick={handleClose} variant="contained" color="secondary">
               Hủy
             </Button>
-            <Button onClick={handleSave} variant="contained" color="primary">
-              Lưu
-            </Button>
+            {!showChangePassword && (
+              <Button onClick={handleSave} variant="contained" color="primary">
+                Lưu
+              </Button>
+            )}
           </div>
         </Box>
       </Modal>
