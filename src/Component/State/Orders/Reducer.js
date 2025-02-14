@@ -1,5 +1,14 @@
-import { GET_ORDER_INVOICE_FAILURE, GET_ORDER_INVOICE_REQUEST, GET_ORDER_INVOICE_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS } from "./ActionType";
-
+import { 
+    GET_ORDER_INVOICE_FAILURE, 
+    GET_ORDER_INVOICE_REQUEST, 
+    GET_ORDER_INVOICE_SUCCESS, 
+    GET_USERS_ORDERS_FAILURE, 
+    GET_USERS_ORDERS_REQUEST, 
+    GET_USERS_ORDERS_SUCCESS, 
+    REORDERS_REQUEST, 
+    REORDERS_SUCCESS, 
+    REORDERS_FAILURE 
+} from "./ActionType";
 
 const initialState = {
     loading: false,
@@ -7,10 +16,12 @@ const initialState = {
     totalPages: 0,      // Tổng số trang
     totalElements: 0,   // Tổng số đơn hàng
     currentPage: 0,     // Trang hiện tại
-    pageSize: 10,
-    invoice: null,       // Số lượng đơn hàng mỗi trang
+    pageSize: 10,       // Số lượng đơn hàng mỗi trang
+    invoice: null,      
     error: null,
+    reorderSuccess: false, // Trạng thái mua lại đơn hàng
 };
+
 export const orderReducer = (state = initialState, action) => {
     switch(action.type){
         case GET_USERS_ORDERS_REQUEST:
@@ -36,12 +47,19 @@ export const orderReducer = (state = initialState, action) => {
                 error: action.payload
             };
 
-            case GET_ORDER_INVOICE_REQUEST:
-                return { ...state, loading: true, error: null };
-            case GET_ORDER_INVOICE_SUCCESS:
-                return { ...state, loading: false, invoice: action.payload };
-            case GET_ORDER_INVOICE_FAILURE:
-                return { ...state, loading: false, error: action.payload };
+        case GET_ORDER_INVOICE_REQUEST:
+            return { ...state, loading: true, error: null };
+        case GET_ORDER_INVOICE_SUCCESS:
+            return { ...state, loading: false, invoice: action.payload };
+        case GET_ORDER_INVOICE_FAILURE:
+            return { ...state, loading: false, error: action.payload };
+
+        case REORDERS_REQUEST:
+            return { ...state, loading: true, reorderSuccess: false, error: null };
+        case REORDERS_SUCCESS:
+            return { ...state, loading: false, reorderSuccess: true };
+        case REORDERS_FAILURE:
+            return { ...state, loading: false, reorderSuccess: false, error: action.payload };
 
         default:
             return state;

@@ -1,10 +1,63 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUsersOrders } from "../State/Orders/Action";
+import { getUsersOrders, reorderOrder } from "../State/Orders/Action";
 import { createRating } from "../State/Rating/Action";
+import { getUserAddresses } from "../State/Address/Action";
 
 const ProfileOrders = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); // Khai báo dispatch trước khi dùng nó
+  const [orderDate, setOrderDate] = useState(
+    new Date().toLocaleDateString("vi-VN")
+  );
+
+  const { addresses } = useSelector((state) => state.address);
+
+  const [selectedAddressId, setSelectedAddressId] = useState(""); // Lưu địa chỉ được chọn
+
+  const [showReorderPopup, setShowReorderPopup] = useState(false); // Hiển thị popup mua lại
+  const [selectedOrder, setSelectedOrder] = useState(null); // Lưu đơn hàng được chọn
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // Lưu phương thức thanh toán
+
+  useEffect(() => {
+    const jwt = localStorage.getItem("jwt");
+    if (jwt) {
+      dispatch(getUserAddresses(jwt)); // Gọi API lấy danh sách địa chỉ
+    }
+  }, [dispatch, showReorderPopup]); // Chạy lại khi popup mở
+
+  const openReorderPopup = (order) => {
+    setSelectedOrder(order);
+    setShowReorderPopup(true);
+  };
+
+  const handleReorder = async (orderId) => {
+    if (!selectedPaymentMethod) {
+      alert("Vui lòng chọn phương thức thanh toán!");
+      return;
+    }
+
+    if (!selectedAddressId) {
+      alert("Vui lòng chọn địa chỉ giao hàng!");
+      return;
+    }
+
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt) {
+      alert("Bạn cần đăng nhập để mua lại.");
+      return;
+    }
+
+    try {
+      await dispatch(
+        reorderOrder(orderId, selectedPaymentMethod, selectedAddressId, jwt)
+      );
+      alert("Mua lại thành công! Vui lòng kiểm tra đơn hàng.");
+      setShowReorderPopup(false); // Đóng popup sau khi mua lại
+    } catch (error) {
+      alert("Có lỗi xảy ra: " + error.message);
+    }
+  };
+
   const { orders, loading, error, totalPages, currentPage } = useSelector(
     (state) => state.orders
   );
@@ -106,6 +159,15 @@ const ProfileOrders = () => {
                 <p>
                   <strong>Tình trạng:</strong> {order.orderStatus}
                 </p>
+                {order.orderStatus === "Hoàn thành" && (
+                  <button
+                    onClick={() => openReorderPopup(order)}
+                    className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                  >
+                    Mua lại
+                  </button>
+                )}
+
                 <p>
                   <strong>Thanh toán:</strong>{" "}
                   {order.statusPayment ? "Đã thanh toán" : "Chưa thanh toán"}
@@ -269,6 +331,96 @@ const ProfileOrders = () => {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md"
               >
                 Gửi đánh giá
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReorderPopup && selectedOrder && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          style={{ zIndex: 1000 }}
+        >
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Mua lại đơn hàng</h2>
+
+            {/* Hiển thị thông tin đơn hàng */}
+            <p>
+              <strong>Ngày đặt:</strong> {orderDate}{" "}
+              {/* Luôn hiển thị ngày hôm nay */}
+            </p>
+            <p>
+              <strong>Tổng tiền:</strong>{" "}
+              {selectedOrder.totalPrice.toLocaleString()} VND
+            </p>
+
+            {/* Hiển thị danh sách ảnh sản phẩm */}
+            <h3 className="font-semibold mt-2">Sản phẩm trong đơn hàng:</h3>
+            <div className="flex overflow-x-auto space-x-2 py-2">
+              {selectedOrder.items.map((item, idx) => (
+                <img
+                  key={idx}
+                  src={
+                    item.product?.images?.[0] ||
+                    "https://via.placeholder.com/100"
+                  }
+                  alt={item.product?.name || "Hình ảnh sản phẩm"}
+                  className="w-16 h-16 object-cover rounded-md shadow-md"
+                />
+              ))}
+            </div>
+
+            {/* Chọn địa chỉ giao hàng */}
+            <label className="block mb-2 font-semibold">
+              Chọn địa chỉ giao hàng:
+            </label>
+            <select
+              value={selectedAddressId}
+              onChange={(e) => setSelectedAddressId(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            >
+              <option value="">-- Chọn địa chỉ --</option>
+              {addresses && addresses.length > 0 ? (
+                addresses.map((addr) => (
+                  <option key={addr.id} value={addr.id}>
+                    {`${addr.fullName} - ${addr.fullAddress}, ${addr.city}, ${addr.province}`}
+                  </option>
+                ))
+              ) : (
+                <option value="">Không có địa chỉ nào</option>
+              )}
+            </select>
+
+            {/* Chọn phương thức thanh toán */}
+            <label className="block mb-2 font-semibold">
+              Chọn phương thức thanh toán:
+            </label>
+            <select
+              value={selectedPaymentMethod}
+              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            >
+              <option value="">-- Chọn phương thức --</option>
+              <option value="vnpay">VNPay</option>
+              <option value="stripe">Stripe</option>
+              <option value="zalopay">ZaloPay</option>
+              <option value="momo">Momo</option>
+            </select>
+
+            {/* Nút xác nhận hoặc hủy */}
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowReorderPopup(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => handleReorder(selectedOrder.id)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md"
+              >
+                Xác nhận mua lại
               </button>
             </div>
           </div>
