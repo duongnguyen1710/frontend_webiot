@@ -81,22 +81,30 @@ export const loginUser = (reqData) => async (dispatch) => {
     }
   };
 
-export const getUser=(jwt)=>async(dispatch)=>{
-    dispatch({type:GET_USER_REQUEST})
+  export const getUser = (jwt) => async (dispatch) => {
+    dispatch({ type: GET_USER_REQUEST });
     try {
-        const {data} = await api.get(`${API_URL}/api/users/profile`,{
-            headers:{
-                Authorization:`Bearer ${jwt}`
-            }
-        })
-       
-        dispatch({type: GET_USER_SUCCESS, payload:data})
-        console.log("user profile",data)
+        const { data } = await api.get(`${API_URL}/api/users/profile`, {
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+            },
+        });
+
+        dispatch({ type: GET_USER_SUCCESS, payload: data });
+        console.log("user profile", data);
     } catch (error) {
-        dispatch({type:GET_USER_FAILURE,payload:error})
-        console.log("error", error)
+        if (error.response && error.response.status === 403) {
+            dispatch({
+                type: GET_USER_FAILURE,
+                payload: "Tài khoản chưa được xác minh. Vui lòng xác minh email để truy cập profile.",
+            });
+        } else {
+            dispatch({ type: GET_USER_FAILURE, payload: error.message });
+        }
+        console.log("error", error);
     }
-}
+};
+
 
 
 

@@ -161,9 +161,8 @@ export default function Navbar() {
                 onClick={() => navigate("/cart")}
               >
                 <Badge badgeContent={cart.cartItems.length} color="error">
-  <ShoppingCartIcon className="h-6 w-6" />
-</Badge>
-
+                  <ShoppingCartIcon className="h-6 w-6" />
+                </Badge>
               </button>
 
               {/* Hồ sơ */}
@@ -173,7 +172,10 @@ export default function Navbar() {
                   <Menu as="div" className="relative inline-block text-left">
                     <div>
                       <Menu.Button className="flex items-center text-sm focus:outline-none">
-                        <Avatar>{auth.user?.fullName[0]?.toUpperCase()}</Avatar>
+                        <Avatar src={auth.user.avatar || ""}>
+                          {!auth.user.avatar &&
+                            auth.user?.fullName[0]?.toUpperCase()}
+                        </Avatar>
                       </Menu.Button>
                     </div>
 

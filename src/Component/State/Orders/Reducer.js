@@ -7,7 +7,10 @@ import {
     GET_USERS_ORDERS_SUCCESS, 
     REORDERS_REQUEST, 
     REORDERS_SUCCESS, 
-    REORDERS_FAILURE 
+    REORDERS_FAILURE,
+    REPAY_REQUEST,
+    REPAY_SUCCESS,
+    REPAY_FAILURE
 } from "./ActionType";
 
 const initialState = {
@@ -20,6 +23,7 @@ const initialState = {
     invoice: null,      
     error: null,
     reorderSuccess: false, // Trạng thái mua lại đơn hàng
+    repaySuccess: false, // Trạng thái thanh toán lại đơn hàng
 };
 
 export const orderReducer = (state = initialState, action) => {
@@ -60,6 +64,13 @@ export const orderReducer = (state = initialState, action) => {
             return { ...state, loading: false, reorderSuccess: true };
         case REORDERS_FAILURE:
             return { ...state, loading: false, reorderSuccess: false, error: action.payload };
+
+        case REPAY_REQUEST:
+            return { ...state, loading: true, repaySuccess: false, error: null };
+        case REPAY_SUCCESS:
+            return { ...state, loading: false, repaySuccess: true };
+        case REPAY_FAILURE:
+            return { ...state, loading: false, repaySuccess: false, error: action.payload };
 
         default:
             return state;

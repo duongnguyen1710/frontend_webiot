@@ -17,6 +17,8 @@ const NewProduct = () => {
     dispatch(getNewProduct({ id: 1 }));
   }, [dispatch]);
 
+  console.log("Products data:", products);
+
   const handleAddToCart = (product) => {
     const jwt = localStorage.getItem("jwt"); // Lấy jwt từ localStorage
 

@@ -1,26 +1,22 @@
 import { api } from "../../Config/Api";
 import { CHANGE_PASSWORD_FAILURE, CHANGE_PASSWORD_REQUEST, CHANGE_PASSWORD_SUCCESS, UPDATE_PROFILE_FAILURE, UPDATE_PROFILE_REQUEST, UPDATE_PROFILE_SUCCESS } from "./ActionType";
 
-export const updateUserProfile = (userId, fullName, avatar) => async (dispatch) => {
+export const updateUserProfile = (userId, formData) => async (dispatch) => {
     try {
         dispatch({ type: UPDATE_PROFILE_REQUEST });
 
-        const token = localStorage.getItem("jwt"); 
+        const token = localStorage.getItem("jwt");
 
-        const requestData = {};
-        if (fullName) requestData.fullName = fullName;
-        if (avatar) requestData.avatar = avatar;
-
-        const response = await api.put(`/api/users/update-profile/${userId}`, requestData, {
+        const response = await api.put(`/api/users/update-profile/${userId}`, formData, {
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "multipart/form-data",
                 Authorization: `Bearer ${token}`,
             },
         });
 
         dispatch({
             type: UPDATE_PROFILE_SUCCESS,
-            payload: response.data, 
+            payload: response.data, // ✅ Trả về user mới sau khi cập nhật
         });
 
     } catch (error) {
@@ -30,6 +26,9 @@ export const updateUserProfile = (userId, fullName, avatar) => async (dispatch) 
         });
     }
 };
+
+
+
 
 export const changePassword = (currentPassword, newPassword) => async (dispatch) => {
     try {

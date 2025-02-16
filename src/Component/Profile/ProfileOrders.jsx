@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUsersOrders, reorderOrder } from "../State/Orders/Action";
+import {
+  getUsersOrders,
+  reorderOrder,
+  retryPayment,
+} from "../State/Orders/Action";
 import { createRating } from "../State/Rating/Action";
 import { getUserAddresses } from "../State/Address/Action";
 
@@ -15,6 +19,59 @@ const ProfileOrders = () => {
   const [selectedAddressId, setSelectedAddressId] = useState(""); // Lưu địa chỉ được chọn
 
   const [showReorderPopup, setShowReorderPopup] = useState(false); // Hiển thị popup mua lại
+  const [showRetryPopup, setShowRetryPopup] = useState(false);
+  const [retryOrder, setRetryOrder] = useState(null);
+
+  const openRetryPaymentPopup = (order) => {
+    setRetryOrder(order);
+    setShowRetryPopup(true);
+  };
+
+  const handleRetryPayment = async () => {
+    if (!selectedPaymentMethod) {
+      alert("Vui lòng chọn phương thức thanh toán!");
+      return;
+    }
+
+    if (!selectedAddressId) {
+      alert("Vui lòng chọn địa chỉ giao hàng!");
+      return;
+    }
+
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt) {
+      alert("Bạn cần đăng nhập để thanh toán lại.");
+      return;
+    }
+
+    try {
+      const response = await dispatch(
+        retryPayment(
+          retryOrder.id,
+          selectedPaymentMethod,
+          selectedAddressId,
+          jwt
+        )
+      );
+
+      alert("Thanh toán lại thành công! Vui lòng kiểm tra đơn hàng.");
+      setShowRetryPopup(false); // Đóng popup sau khi thanh toán lại
+
+      // Chuyển hướng nếu có link thanh toán
+      if (response.vnpay_url) {
+        window.location.href = response.vnpay_url;
+      } else if (response.stripe_url) {
+        window.location.href = response.stripe_url;
+      } else if (response.momo_url) {
+        window.location.href = response.momo_url;
+      } else if (response.zalopay_url) {
+        window.location.href = response.zalopay_url;
+      }
+    } catch (error) {
+      alert("Có lỗi xảy ra: " + error.message);
+    }
+  };
+
   const [selectedOrder, setSelectedOrder] = useState(null); // Lưu đơn hàng được chọn
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // Lưu phương thức thanh toán
 
@@ -64,6 +121,7 @@ const ProfileOrders = () => {
 
   const paymentMethods = {
     1: "VnPay",
+    2: "ZaloPay",
     3: "Stripe",
     4: "Tiền mặt",
   };
@@ -172,6 +230,15 @@ const ProfileOrders = () => {
                   <strong>Thanh toán:</strong>{" "}
                   {order.statusPayment ? "Đã thanh toán" : "Chưa thanh toán"}
                 </p>
+                {order.statusPayment !== 1 && order.paymentType !== 4 ? (
+                  <button
+                    onClick={() => openRetryPaymentPopup(order)}
+                    className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    Thanh toán lại
+                  </button>
+                ) : null}
+
                 <p>
                   <strong>Phương thức thanh toán:</strong>{" "}
                   {paymentMethods[order.paymentType] || "Không xác định"}
@@ -421,6 +488,95 @@ const ProfileOrders = () => {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md"
               >
                 Xác nhận mua lại
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRetryPopup && retryOrder && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          style={{ zIndex: 1000 }}
+        >
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Thanh toán lại đơn hàng</h2>
+
+            <p>
+              <strong>Ngày đặt:</strong>{" "}
+              {new Date().toLocaleDateString("vi-VN")}
+            </p>
+            <p>
+              <strong>Tổng tiền:</strong>{" "}
+              {retryOrder.totalPrice.toLocaleString()} VND
+            </p>
+
+            <h3 className="font-semibold mt-2">Sản phẩm:</h3>
+            <div className="flex overflow-x-auto space-x-2 py-2">
+              {retryOrder.items.map((item, idx) => (
+                <img
+                  key={idx}
+                  src={
+                    item.product?.images?.[0] ||
+                    "https://via.placeholder.com/100"
+                  }
+                  alt={item.product?.name || "Hình ảnh sản phẩm"}
+                  className="w-16 h-16 object-cover rounded-md shadow-md"
+                />
+              ))}
+            </div>
+
+            {/* Chọn địa chỉ giao hàng */}
+            <label className="block mb-2 font-semibold">
+              Chọn địa chỉ giao hàng:
+            </label>
+            <select
+              value={selectedAddressId}
+              onChange={(e) => setSelectedAddressId(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            >
+              <option value="">-- Chọn địa chỉ --</option>
+              {addresses?.length > 0 ? (
+                addresses.map((addr) => (
+                  <option key={addr.id} value={addr.id}>
+                    {`${addr.fullName} - ${addr.fullAddress}, ${addr.city}, ${addr.province}`}
+                  </option>
+                ))
+              ) : (
+                <option value="">Không có địa chỉ nào</option>
+              )}
+            </select>
+
+            {/* Chọn phương thức thanh toán */}
+            <label className="block mb-2 font-semibold">
+              Chọn phương thức thanh toán:
+            </label>
+            <select
+              value={selectedPaymentMethod}
+              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            >
+              <option value="">-- Chọn phương thức --</option>
+              <option value="vnpay">VNPay</option>
+              <option value="stripe">Stripe</option>
+              <option value="zalopay">ZaloPay</option>
+              <option value="momo">Momo</option>
+              <option value="cod">Tiền mặt</option>
+            </select>
+
+            {/* Nút xác nhận hoặc hủy */}
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowRetryPopup(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleRetryPayment}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md"
+              >
+                Xác nhận thanh toán
               </button>
             </div>
           </div>

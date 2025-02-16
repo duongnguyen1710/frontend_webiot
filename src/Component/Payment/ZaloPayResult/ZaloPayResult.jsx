@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
 import { api } from '../../Config/Api';
 
 const ZaloPayResult = () => {
@@ -44,17 +43,19 @@ const ZaloPayResult = () => {
 
                 console.log('Phản hồi từ Backend:', response.data);
 
-                if (response.status === 200) {
+                // 🔹 Kiểm tra `statusPayment` từ API backend
+                const statusPayment = response.data?.statusPayment;
+                if (statusPayment === 1) {
                     setStatus('success');
-                    setMessage(response.data);
+                    setMessage('Thanh toán thành công, đơn hàng đã được cập nhật!');
                 } else {
                     setStatus('failed');
-                    setMessage('Giao dịch không thành công, vui lòng thử lại!');
+                    setMessage('Thanh toán thất bại! Vui lòng thử lại.');
                 }
             } catch (error) {
                 console.error('❌ Lỗi:', error.response?.data || error.message);
                 setStatus('failed');
-                setMessage(error.response?.data || 'Lỗi khi xử lý thanh toán ZaloPay');
+                setMessage(error.response?.data?.message || 'Lỗi khi xử lý thanh toán ZaloPay');
             }
         };
 

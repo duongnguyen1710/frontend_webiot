@@ -71,7 +71,6 @@ const Cart = () => {
       dispatch(getAllUserAddresses(jwt)); // Gọi API lấy tất cả địa chỉ
     }
   }, [dispatch, jwt]);
-  
 
   const handleOpenAddressModal = () => {
     console.log("Open Address Modal clicked"); // Kiểm tra trong console
@@ -85,7 +84,7 @@ const Cart = () => {
     return cart.cartItems.reduce((total, item) => total + item.totalPrice, 0);
   };
 
-  const shippingFee = 30000; // Phí ship cố định
+  const shippingFee = 0; // Phí ship cố định
 
   const handleSubmit = async (values, { resetForm }) => {
     const token = localStorage.getItem("jwt");
@@ -120,11 +119,18 @@ const Cart = () => {
   };
 
   const handleOrder = () => {
-    if (!selectedAddress || !paymentMethod) {
-      toast.warn("Chọn địa chỉ và phương thức thanh toán trước khi thanh toán.");
+    if (cart.cartItems.length === 0) {
+      toast.warn("Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.");
       return;
     }
-  
+
+    if (!selectedAddress || !paymentMethod) {
+      toast.warn(
+        "Chọn địa chỉ và phương thức thanh toán trước khi thanh toán."
+      );
+      return;
+    }
+
     const orderData = {
       restaurantId: cart.cartItems[0]?.product?.restaurant?.id || 1,
       deliveryAddress: {
@@ -139,12 +145,11 @@ const Cart = () => {
       },
       paymentMethod: paymentMethod,
     };
-  
+
     dispatch(createOrder({ order: orderData, jwt }))
       .then(() => {
-        // 🛑 Xoá giỏ hàng ngay lập tức sau khi đặt hàng thành công
         dispatch({ type: "CLEAR_CART" });
-  
+
         if (paymentMethod === "cod") {
           toast.success("Đặt hàng thành công!");
           setTimeout(() => {
@@ -157,7 +162,6 @@ const Cart = () => {
         console.error("Order creation failed:", error);
       });
   };
-  
 
   return (
     <div>
@@ -195,50 +199,56 @@ const Cart = () => {
           <h1 className="text-center font-semibold text-2xl py-10">ĐỊA CHỈ</h1>
 
           {/* Dropdown danh sách địa chỉ */}
-          <FormControl
-            fullWidth
-            className="mb-4"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <InputLabel>Chọn địa chỉ</InputLabel>
-            <Select
-              value={selectedAddress?.id || ""}
-              onChange={(e) =>
-                setSelectedAddress(
-                  address.addresses.find((addr) => addr.id === e.target.value)
-                )
-              }
+          {/* Chỉ hiển thị phần chọn địa chỉ khi giỏ hàng có sản phẩm */}
+          {cart.cartItems.length > 0 ? (
+            <FormControl
               fullWidth
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 200, // Giới hạn chiều cao dropdown để cuộn khi có nhiều địa chỉ
-                    overflowY: "auto",
-                  },
-                },
+              className="mb-4"
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
               }}
             >
-              {address.addresses.map((addr) => (
-                <MenuItem key={addr.id} value={addr.id}>
-                  {`${addr.fullName} - ${addr.fullAddress}, ${addr.city}, ${addr.province}`}
-                </MenuItem>
-              ))}
-            </Select>
+              <InputLabel>Chọn địa chỉ</InputLabel>
+              <Select
+                value={selectedAddress?.id || ""}
+                onChange={(e) =>
+                  setSelectedAddress(
+                    address.addresses.find((addr) => addr.id === e.target.value)
+                  )
+                }
+                fullWidth
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 200,
+                      overflowY: "auto",
+                    },
+                  },
+                }}
+              >
+                {address.addresses.map((addr) => (
+                  <MenuItem key={addr.id} value={addr.id}>
+                    {`${addr.fullName} - ${addr.fullAddress}, ${addr.city}, ${addr.province}`}
+                  </MenuItem>
+                ))}
+              </Select>
 
-            {/* Nút "+" mở form thêm địa chỉ */}
-            <Button
-              onClick={handleOpenAddressModal}
-              variant="contained"
-              color="primary"
-              style={{ marginLeft: "10px", minWidth: "40px", height: "40px" }}
-            >
-              +
-            </Button>
-          </FormControl>
+              <Button
+                onClick={handleOpenAddressModal}
+                variant="contained"
+                color="primary"
+                style={{ marginLeft: "10px", minWidth: "40px", height: "40px" }}
+              >
+                +
+              </Button>
+            </FormControl>
+          ) : (
+            <p className="text-red-500 font-semibold text-center mt-4">
+              Vui lòng thêm sản phẩm vào giỏ hàng trước khi chọn địa chỉ.
+            </p>
+          )}
 
           {selectedAddress && (
             <div className="bg-gray-100 p-5 rounded-md shadow-md mt-5 text-center">
@@ -275,12 +285,54 @@ const Cart = () => {
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 >
-                  <MenuItem value="stripe">Stripe</MenuItem>
-                  <MenuItem value="vnpay">VNPay</MenuItem>
-                  <MenuItem value="zalopay">Zalopay</MenuItem>
-                  <MenuItem value="cod">Thanh toán khi nhận hàng</MenuItem>
+                  {/* <MenuItem value="stripe">
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Stripe_Logo%2C_revised_2016.png"
+                      alt="Stripe"
+                      width="40"
+                      className="mr-2"
+                    />
+                    Stripe
+                  </MenuItem> */}
+                  <MenuItem value="vnpay">
+                    <img
+                      src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png"
+                      alt="VNPay"
+                      width="40"
+                      className="mr-2"
+                    />
+                    VNPay
+                  </MenuItem>
+                  <MenuItem value="zalopay">
+                    <img
+                      src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png"
+                      alt="ZaloPay"
+                      width="40"
+                      className="mr-2"
+                    />
+                    ZaloPay
+                  </MenuItem>
+                  <MenuItem value="momo">
+                    <img
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvz9g7oIgvPw69pDGk7QQA3GibxnWJzOqX6dH5SaWL8BGn9jh6iJWapcONYnuUOYUqbMo&usqp=CAU"
+                      alt="Momo"
+                      width="40"
+                      className="mr-2"
+                    />
+                    Momo
+                  </MenuItem>
+                  <MenuItem value="cod">
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/2554/2554971.png"
+                      alt="COD"
+                      width="40"
+                      className="mr-2"
+                    />
+                    Thanh toán khi nhận hàng
+                  </MenuItem>
                 </Select>
               </FormControl>
+
               <Button
                 variant="contained"
                 color="primary"

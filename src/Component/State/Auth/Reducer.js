@@ -56,6 +56,11 @@ export const authReducer = (state = initialState, action) => {
                 };
 
             case REGISTER_SUCCESS:
+                return {
+                    ...state,
+                    isLoading: false,
+                    success: "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.",
+                };
             case LOGIN_SUCCESS:
                 if (action.payload) {
                     localStorage.setItem("jwt", action.payload);
@@ -78,11 +83,16 @@ export const authReducer = (state = initialState, action) => {
                 };
             
             case VERIFY_USER_SUCCESS:
-                return {
-                    ...state,
-                    isLoading: false,
-                    success: "Email verification successful",
-                };
+                 // Khi xác minh email thành công, lưu JWT vào localStorage
+    if (action.payload.jwt) {
+        localStorage.setItem("jwt", action.payload.jwt);
+    }
+    return {
+        ...state,
+        isLoading: false,
+        success: "Xác minh email thành công! Bạn có thể đăng nhập.",
+        jwt: action.payload.jwt,
+    };
 
             case RESEND_EMAIL_SUCCESS:
                 return {

@@ -33,17 +33,19 @@ const PaymentResult = () => {
 
                 console.log('Phản hồi từ Backend:', response.data);
 
-                if (response.status === 200) {
+                // 🔹 Kiểm tra trạng thái thanh toán từ backend
+                const statusPayment = response.data?.statusPayment; // Kiểm tra trạng thái thanh toán
+                if (statusPayment === 1) {
                     setStatus('success');
-                    setMessage(response.data);
+                    setMessage('Thanh toán thành công, đơn hàng đã được cập nhật!');
                 } else {
                     setStatus('failed');
-                    setMessage('Giao dịch không thành công, vui lòng thử lại!');
+                    setMessage('Thanh toán thất bại! Vui lòng thử lại.');
                 }
             } catch (error) {
                 console.error('Lỗi:', error.response?.data || error.message);
                 setStatus('failed');
-                setMessage(error.response?.data || 'Lỗi khi xử lý thanh toán VNPAY');
+                setMessage(error.response?.data?.message || 'Lỗi khi xử lý thanh toán VNPAY');
             }
         };
 

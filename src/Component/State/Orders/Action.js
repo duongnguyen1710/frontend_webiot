@@ -1,5 +1,5 @@
 import { api } from "../../Config/Api";
-import { CREATE_ORDER_FAILURE, CREATE_ORDER_REQUEST, CREATE_ORDER_SUCCESS, GET_ORDER_INVOICE_FAILURE, GET_ORDER_INVOICE_REQUEST, GET_ORDER_INVOICE_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS, REORDERS_FAILURE, REORDERS_REQUEST, REORDERS_SUCCESS } from "./ActionType";
+import { CREATE_ORDER_FAILURE, CREATE_ORDER_REQUEST, CREATE_ORDER_SUCCESS, GET_ORDER_INVOICE_FAILURE, GET_ORDER_INVOICE_REQUEST, GET_ORDER_INVOICE_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS, REORDERS_FAILURE, REORDERS_REQUEST, REORDERS_SUCCESS, REPAY_FAILURE, REPAY_REQUEST, REPAY_SUCCESS } from "./ActionType";
 
 export const createOrder = (reqData) => {
     return async (dispatch) => {
@@ -18,8 +18,8 @@ export const createOrder = (reqData) => {
                 window.location.href = data.paypal_url;
             } else if (data.orderUrl) {
                 window.location.href = data.orderUrl;
-            } else if (data.momo_url) {
-                window.location.href = data.momo_url;
+            } else if (data.payUrl) {
+                window.location.href = data.payUrl;
             } else if (data.onepay_url) { 
                 window.location.href = data.onepay_url;
             } else {
@@ -129,6 +129,50 @@ export const reorderOrder = (orderId, paymentMethod, addressId, jwt) => {
             dispatch({ 
                 type: REORDERS_FAILURE, 
                 payload: error.response?.data?.message || "Có lỗi xảy ra khi mua lại đơn hàng!" 
+            });
+
+            throw error; // Ném lỗi để UI xử lý hiển thị thông báo
+        }
+    };
+};
+
+export const retryPayment = (orderId, paymentMethod, addressId, jwt) => {
+    return async (dispatch) => {
+        dispatch({ type: REPAY_REQUEST });
+
+        try {
+            const { data } = await api.post(
+                `/api/orders/retry-payment/${orderId}`,
+                { paymentMethod, addressId }, // Gửi phương thức thanh toán và địa chỉ mới
+                {
+                    headers: {
+                        Authorization: `Bearer ${jwt}`,
+                    },
+                }
+            );
+
+            console.log("Thanh toán lại thành công:", data);
+            dispatch({ type: REPAY_SUCCESS, payload: data });
+
+            // Nếu có URL thanh toán, tự động chuyển hướng
+            if (data.vnpay_url) {
+                window.location.href = data.vnpay_url;
+            } else if (data.stripe_url) {
+                window.location.href = data.stripe_url;
+            } else if (data.zalopay_url) {
+                window.location.href = data.zalopay_url;
+            } else if (data.momo_url) {
+                window.location.href = data.momo_url;
+            } else {
+                console.log("Không có URL thanh toán từ backend", data);
+            }
+
+            return data; // Trả về kết quả để UI có thể xử lý tiếp (nếu cần)
+        } catch (error) {
+            console.error("Lỗi khi thanh toán lại:", error);
+            dispatch({
+                type: REPAY_FAILURE,
+                payload: error.response?.data?.message || "Có lỗi xảy ra khi thanh toán lại!",
             });
 
             throw error; // Ném lỗi để UI xử lý hiển thị thông báo

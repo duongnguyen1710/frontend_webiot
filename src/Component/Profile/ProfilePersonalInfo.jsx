@@ -38,11 +38,12 @@ const ProfilePersonalInfo = () => {
   }, [dispatch, jwt]);
 
   useEffect(() => {
-    if (user) {
-      setFullName(user.fullName || "");
-      setPreviewAvatar(user.avatar || "https://via.placeholder.com/150");
+    if (success && user) {
+        setFullName(user.fullName || "");
+        setPreviewAvatar(user.avatar || "https://via.placeholder.com/150"); // ✅ Cập nhật avatar ngay lập tức
     }
-  }, [user]);
+}, [success, user]); // ✅ Khi thành công, tự động cập nhật avatar mới
+
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -61,14 +62,22 @@ const ProfilePersonalInfo = () => {
 
   const handleSave = () => {
     const formData = new FormData();
-    formData.append("fullName", fullName);
+    formData.append("request", JSON.stringify({ fullName }));
+
     if (selectedFile) {
-      formData.append("avatar", selectedFile);
+        formData.append("avatar", selectedFile);
     }
 
-    dispatch(updateUserProfile(user.id, formData));
-    handleClose();
-  };
+    dispatch(updateUserProfile(user.id, formData)).then(() => {
+        // ✅ Cập nhật avatar ngay khi Redux hoàn thành
+        if (selectedFile) {
+            setPreviewAvatar(URL.createObjectURL(selectedFile)); 
+        }
+        handleClose(); // ✅ Đóng modal ngay lập tức
+    });
+};
+
+
 
   const handleChangePassword = () => {
     dispatch(changePassword(currentPassword, newPassword));
