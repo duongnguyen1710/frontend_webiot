@@ -9,6 +9,8 @@ import { createRating } from "../State/Rating/Action";
 import { getUserAddresses } from "../State/Address/Action";
 
 const ProfileOrders = () => {
+  const { ratingStatus } = useSelector((state) => state.rating);
+
   const dispatch = useDispatch(); // Khai báo dispatch trước khi dùng nó
   const [orderDate, setOrderDate] = useState(
     new Date().toLocaleDateString("vi-VN")
@@ -148,7 +150,12 @@ const ProfileOrders = () => {
 
       // Gửi đánh giá thông qua action
       await dispatch(createRating(currentProduct.id, ratingData, jwt));
-      alert("Đánh giá đã được gửi thành công!");
+      if (ratingStatus === "Đánh giá rồi") {
+        alert("Bạn đã đánh giá sản phẩm này trước đó!");
+      } else {
+        alert("Đánh giá đã được gửi thành công!");
+      }
+      
       setShowPopup(false); // Đóng pop-up sau khi gửi thành công
     } catch (error) {
       alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
@@ -212,8 +219,9 @@ const ProfileOrders = () => {
                 {/* <h2 className="font-bold text-lg">Đơn hàng #{index + 1}</h2> */}
                 <p>
                   <strong>Ngày đặt:</strong>{" "}
-                  {new Date(order.createAt).toLocaleDateString("vi-VN")}
+                  {new Date(order.createAt).toLocaleString("vi-VN")}
                 </p>
+
                 <p>
                   <strong>Tình trạng:</strong> {order.orderStatus}
                 </p>
@@ -283,9 +291,21 @@ const ProfileOrders = () => {
                         {order.orderStatus === "Hoàn thành" && (
                           <button
                             onClick={() => handleOpenPopup(item.product)}
-                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                            disabled={
+                              item.product?.rated ||
+                              ratingStatus === "Đánh giá rồi"
+                            } // ✅ Cập nhật trạng thái từ Redux
+                            className={`mt-2 px-4 py-2 rounded-md ${
+                              item.product?.rated ||
+                              ratingStatus === "Đánh giá rồi"
+                                ? "bg-gray-400 text-white cursor-not-allowed"
+                                : "bg-blue-500 text-white hover:bg-blue-600"
+                            }`}
                           >
-                            Đánh giá sản phẩm
+                            {item.product?.rated ||
+                            ratingStatus === "Đánh giá rồi"
+                              ? "Đã đánh giá"
+                              : "Đánh giá sản phẩm"}
                           </button>
                         )}
                       </div>

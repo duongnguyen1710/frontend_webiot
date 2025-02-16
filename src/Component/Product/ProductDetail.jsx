@@ -29,41 +29,20 @@ const ProductDetail = () => {
     error: ratingError,
   } = useSelector((state) => state.rating);
 
-  const increaseQuantity = () => {
-    setQuantity(quantity + 1);
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
+  const increaseQuantity = () => setQuantity(quantity + 1);
+  const decreaseQuantity = () => quantity > 1 && setQuantity(quantity - 1);
 
   const handleAddToCart = async () => {
-    const jwt = localStorage.getItem("jwt"); // Lấy jwt từ localStorage
+    const jwt = localStorage.getItem("jwt");
 
     if (!jwt || jwt.trim() === "") {
-      toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      navigate("/login"); // Chuyển hướng đến trang đăng nhập
+      toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!");
+      navigate("/login");
       return;
     }
 
     if (!productDetails || !productDetails.id) {
-      toast.error("Không thể thêm sản phẩm này vào giỏ hàng!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Không thể thêm sản phẩm này vào giỏ hàng!");
       return;
     }
 
@@ -77,59 +56,26 @@ const ProductDetail = () => {
 
     try {
       await dispatch(addItemToCart(reqData));
-      toast.success("Sản phẩm đã được thêm vào giỏ hàng!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
     } catch (error) {
-      toast.error("Thêm sản phẩm vào giỏ hàng thất bại. Vui lòng thử lại!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Thêm sản phẩm vào giỏ hàng thất bại. Vui lòng thử lại!");
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   const handleBuyNow = async () => {
-    const jwt = localStorage.getItem("jwt"); // Lấy jwt từ localStorage
+    const jwt = localStorage.getItem("jwt");
 
     if (!jwt || jwt.trim() === "") {
-      toast.error("Bạn cần đăng nhập để mua sản phẩm!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      navigate("/login"); // Chuyển hướng đến trang đăng nhập
+      toast.error("Bạn cần đăng nhập để mua sản phẩm!");
+      navigate("/login");
       return;
     }
 
     if (!productDetails || !productDetails.id) {
-      toast.error("Không thể mua sản phẩm này!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Không thể mua sản phẩm này!");
       return;
     }
 
@@ -144,26 +90,11 @@ const ProductDetail = () => {
     try {
       await dispatch(addItemToCart(reqData));
       toast.success(
-        "Sản phẩm đã được thêm vào giỏ hàng. Đang chuyển đến giỏ hàng...",
-        {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
+        "Sản phẩm đã được thêm vào giỏ hàng. Đang chuyển đến giỏ hàng..."
       );
-      navigate("/cart"); // Chuyển hướng đến trang giỏ hàng
+      navigate("/cart");
     } catch (error) {
-      toast.error("Thêm sản phẩm vào giỏ hàng thất bại. Vui lòng thử lại!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Thêm sản phẩm vào giỏ hàng thất bại. Vui lòng thử lại!");
     }
   };
 
@@ -172,27 +103,6 @@ const ProductDetail = () => {
     productImages.length > 0
       ? productImages[0]
       : "https://via.placeholder.com/400";
-
-  // const reviews = [
-  //   {
-  //     id: 1,
-  //     stars: 5,
-  //     comment: "Sản phẩm rất tốt, chất lượng tuyệt vời!",
-  //     createdAt: "2025-01-12T10:30:00",
-  //   },
-  //   {
-  //     id: 2,
-  //     stars: 4,
-  //     comment: "Hàng ổn nhưng giao hơi chậm.",
-  //     createdAt: "2025-01-10T14:00:00",
-  //   },
-  //   {
-  //     id: 3,
-  //     stars: 3.5,
-  //     comment: "Tạm ổn, giá hợp lý nhưng chất lượng trung bình.",
-  //     createdAt: "2025-01-09T08:45:00",
-  //   },
-  // ];
 
   return (
     <div
@@ -216,9 +126,6 @@ const ProductDetail = () => {
         <div style={{ flex: "2" }}>
           <h2>{productDetails?.name || "Tên sản phẩm"}</h2>
           <p>Giá: {productDetails?.price || "$100"}</p>
-          <p>
-            Mô tả: {productDetails?.description || "Đây là mô tả của sản phẩm."}
-          </p>
           <div
             style={{
               display: "flex",
@@ -257,12 +164,14 @@ const ProductDetail = () => {
           </button>
         </div>
       </div>
+
       <div>
         <h3>Mô tả chi tiết</h3>
         <p>
-          {productDetails?.detailedDescription ||
+          {productDetails?.description ||
             "Đây là mô tả chi tiết của sản phẩm. Bạn có thể thêm ảnh vào mô tả này."}
         </p>
+
         <img
           src={productImage}
           alt="Description Image"
@@ -276,7 +185,6 @@ const ProductDetail = () => {
           {ratingLoading ? (
             <p>Đang tải đánh giá...</p>
           ) : ratingError ? (
-            // Nếu ratingError là object, render key "message" hoặc chuỗi mặc định
             <p style={{ color: "red" }}>
               {typeof ratingError === "object" && ratingError.message
                 ? ratingError.message
@@ -293,6 +201,38 @@ const ProductDetail = () => {
                   borderRadius: "10px",
                 }}
               >
+                {/* Hiển thị Avatar và Tên người đánh giá */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <img
+                    src={
+                      review.user?.avatar || "https://via.placeholder.com/50"
+                    }
+                    alt="Avatar"
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "50%",
+                      marginRight: "10px",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <div>
+                    <strong>{review.user?.fullName || "Người dùng ẩn danh"}</strong>
+                    <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
+                      {review.createAt
+                        ? new Date(review.createAt).toLocaleString("vi-VN")
+                        : "Không xác định"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hiển thị số sao đánh giá */}
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <strong style={{ marginRight: "10px" }}>Số sao:</strong>
                   <span style={{ color: "#FFD700", fontWeight: "bold" }}>
@@ -303,14 +243,10 @@ const ProductDetail = () => {
                     ({review.stars.toFixed(1)} / 5)
                   </span>
                 </div>
+
+                {/* Hiển thị nhận xét */}
                 <p style={{ marginTop: "10px" }}>
                   <strong>Nhận xét:</strong> {review.comment}
-                </p>
-                <p style={{ fontSize: "12px", color: "#666" }}>
-                  <strong>Ngày tạo:</strong>{" "}
-                  {review.createAt
-                    ? review.createAt.split(" ")[0]
-                    : "Không xác định"}
                 </p>
               </div>
             ))

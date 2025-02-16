@@ -116,7 +116,7 @@ export const searchProducts = (query) => async (dispatch) => {
   }
 };
 
-export const getProductByRestaurantAndCategory1 = ({ restaurantId, categoryId, page = 0, size = 10 }) => {
+export const getProductByRestaurantAndCategory1 = ({ restaurantId, categoryId, page = 0, size = 8 }) => {
   return async (dispatch) => {
       dispatch({ type: GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST }); // Bắt đầu gọi API
       try {

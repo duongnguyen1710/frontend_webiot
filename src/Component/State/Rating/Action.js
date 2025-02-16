@@ -20,29 +20,30 @@ export const getRatingsByProductId = (productId) => async (dispatch) => {
 
   export const createRating = (productId, ratingData, jwt) => async (dispatch) => {
     dispatch({ type: CREATE_RATING_REQUEST });
-  
+
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`, // Thêm JWT vào header
-          'Content-Type': 'application/json',
-        },
-      };
-  
-      const response = await api.post(
-        `/api/ratings/${productId}`,
-        ratingData, // Dữ liệu đánh giá (stars và comment)
-        config
-      );
-  
-      dispatch({
-        type: CREATE_RATING_SUCCESS,
-        payload: response.data, // Dữ liệu phản hồi từ API
-      });
+        const config = {
+            headers: {
+                Authorization: `Bearer ${jwt}`, // ✅ Thêm lại 'Bearer' trước JWT
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const response = await api.post(
+            `/api/ratings/${productId}`, // Endpoint chính xác
+            ratingData, // Gửi stars và comment
+            config
+        );
+
+        dispatch({
+            type: CREATE_RATING_SUCCESS,
+            payload: response.data, // API trả về `RatingResponse`
+        });
+
     } catch (error) {
-      dispatch({
-        type: CREATE_RATING_FAILURE,
-        payload: error.response?.data || 'Có lỗi xảy ra khi tạo đánh giá!',
-      });
+        dispatch({
+            type: CREATE_RATING_FAILURE,
+            payload: error.response?.data || 'Có lỗi xảy ra khi tạo đánh giá!',
+        });
     }
-  };
+};
