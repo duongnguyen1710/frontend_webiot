@@ -3,6 +3,9 @@ import {
   FILTER_PRODUCTBYCATEGORYITEM_FAILURE,
   FILTER_PRODUCTBYCATEGORYITEM_REQUEST,
   FILTER_PRODUCTBYCATEGORYITEM_SUCCESS,
+  GET_ALLPRODUCT_FAILURE,
+  GET_ALLPRODUCT_REQUEST,
+  GET_ALLPRODUCT_SUCCESS,
   GET_NEWPRODUCT_FAILURE,
   GET_NEWPRODUCT_REQUEST,
   GET_NEWPRODUCT_SUCCESS,
@@ -195,3 +198,22 @@ export const filterProductsByCategoryItem = ({ categoryItemId, minPrice, maxPric
   }
 };
 
+export const getAllProducts = (page = 0, size = 10) => async (dispatch) => {
+  try {
+      dispatch({ type: GET_ALLPRODUCT_REQUEST });
+
+      const { data } = await api.get(`/product/all?page=${page}&size=${size}`);
+
+      dispatch({
+          type: GET_ALLPRODUCT_SUCCESS,
+          payload: data
+      });
+  } catch (error) {
+      dispatch({
+          type: GET_ALLPRODUCT_FAILURE,
+          payload: error.response && error.response.data.message
+              ? error.response.data.message
+              : error.message
+      });
+  }
+};

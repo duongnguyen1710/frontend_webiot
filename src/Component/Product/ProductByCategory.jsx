@@ -151,7 +151,7 @@ const ProductByCategory = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <ToastContainer />
 
       <aside className="w-1/4 bg-white shadow-md p-4">

@@ -13,6 +13,9 @@ import {
   FILTER_PRODUCTBYCATEGORYITEM_REQUEST,
   FILTER_PRODUCTBYCATEGORYITEM_SUCCESS,
   FILTER_PRODUCTBYCATEGORYITEM_FAILURE,
+  GET_ALLPRODUCT_REQUEST,
+  GET_ALLPRODUCT_SUCCESS,
+  GET_ALLPRODUCT_FAILURE,
 } from "./ActionType";
 
 const initialState = {
@@ -30,11 +33,39 @@ const initialState = {
 
 export const productReducer = (state = initialState, action) => {
   switch (action.type) {
+    // Lấy toàn bộ sản phẩm có phân trang
+    case GET_ALLPRODUCT_REQUEST:
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+      };
+
+    case GET_ALLPRODUCT_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        products: action.payload.content, // Lưu danh sách sản phẩm từ API
+        pagination: {
+          currentPage: action.payload.pageable.pageNumber,
+          pageSize: action.payload.pageable.pageSize,
+          totalPages: action.payload.totalPages,
+          totalElements: action.payload.totalElements,
+        },
+      };
+
+    case GET_ALLPRODUCT_FAILURE:
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+      };
+
     // Lấy sản phẩm theo danh mục
     case GET_PRODUCTBYCATEGORY_SUCCESS:
       return {
         ...state,
-        products: action.payload, // Cập nhật danh sách sản phẩm
+        products: action.payload,
       };
 
     // Lấy sản phẩm mới
@@ -49,7 +80,7 @@ export const productReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: true,
-        error: null, // Xóa lỗi cũ (nếu có)
+        error: null,
       };
 
     // Thành công lấy sản phẩm theo ID
@@ -57,7 +88,7 @@ export const productReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: false,
-        productDetails: action.payload, // Cập nhật chi tiết sản phẩm
+        productDetails: action.payload,
       };
 
     // Thất bại lấy sản phẩm theo ID
@@ -65,63 +96,60 @@ export const productReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: false,
-        error: action.payload, // Cập nhật lỗi
+        error: action.payload,
       };
 
-      case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST:
-        return {
-          ...state,
-          isLoading: true,
-          error: null, // Xóa lỗi cũ (nếu có)
-        };
-  
-      // Thành công lấy sản phẩm theo nhà hàng và danh mục
-      case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS:
-        return {
-          ...state,
-          isLoading: false,
-          products: action.payload.content, // Dữ liệu sản phẩm (nội dung trang)
-          pagination: {
-            currentPage: action.payload.pageable.pageNumber,
-            pageSize: action.payload.pageable.pageSize,
-            totalPages: action.payload.totalPages,
-            totalElements: action.payload.totalElements,
-          },
-        };
-  
-      // Thất bại lấy sản phẩm theo nhà hàng và danh mục
-      case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE:
-        return {
-          ...state,
-          isLoading: false,
-          error: action.payload, // Cập nhật lỗi
-        };
-  
+    case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_REQUEST:
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+      };
+
+    case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        products: action.payload.content,
+        pagination: {
+          currentPage: action.payload.pageable.pageNumber,
+          pageSize: action.payload.pageable.pageSize,
+          totalPages: action.payload.totalPages,
+          totalElements: action.payload.totalElements,
+        },
+      };
+
+    case GET_PRODUCT_BY_RESTAURANT_AND_CATEGORY_FAILURE:
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+      };
 
     case SEARCH_PRODUCT_REQUEST:
-      return { ...state, loading: true, error: null };
+      return { ...state, isLoading: true, error: null };
+
     case SEARCH_PRODUCT_SUCCESS:
-      return { ...state, loading: false, products: action.payload };
+      return { ...state, isLoading: false, products: action.payload };
+
     case SEARCH_PRODUCT_FAILURE:
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, isLoading: false, error: action.payload };
 
     case FILTER_PRODUCTBYCATEGORYITEM_REQUEST:
-      return { ...state, loading: true, products: [], error: null };
+      return { ...state, isLoading: true, products: [], error: null };
 
     case FILTER_PRODUCTBYCATEGORYITEM_SUCCESS:
       return {
         ...state,
-        loading: false,
+        isLoading: false,
         products: action.payload,
         error: null,
       };
 
     case FILTER_PRODUCTBYCATEGORYITEM_FAILURE:
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, isLoading: false, error: action.payload };
+
     default:
       return state;
   }
 };
-
-
-

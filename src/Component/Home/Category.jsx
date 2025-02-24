@@ -33,7 +33,6 @@ export default function Category() {
   }, [dispatch]);
 
   const handleProductByCategory = (categoryId, restaurantId) => {
-    // Điều hướng đến trang sản phẩm theo danh mục, với restaurantId cố định là 1
     navigate(`/product/${categoryId}/1`);
   };
 
