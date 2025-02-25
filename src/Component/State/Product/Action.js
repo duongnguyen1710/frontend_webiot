@@ -198,7 +198,7 @@ export const filterProductsByCategoryItem = ({ categoryItemId, minPrice, maxPric
   }
 };
 
-export const getAllProducts = (page = 0, size = 10) => async (dispatch) => {
+export const getAllProducts = (page = 0, size = 9) => async (dispatch) => {
   try {
       dispatch({ type: GET_ALLPRODUCT_REQUEST });
 

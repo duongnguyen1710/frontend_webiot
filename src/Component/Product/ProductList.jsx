@@ -7,7 +7,7 @@ import { getCategory } from "../State/Category/Action";
 import { getAllProducts } from "../State/Product/Action";
 import "react-toastify/dist/ReactToastify.css";
 
-const ITEMS_PER_PAGE = 10; // Số sản phẩm mỗi trang
+const ITEMS_PER_PAGE = 9; // Số sản phẩm mỗi trang
 
 const ProductList = () => {
   const navigate = useNavigate();
