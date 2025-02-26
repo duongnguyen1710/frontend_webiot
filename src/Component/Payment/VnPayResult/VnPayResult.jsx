@@ -21,7 +21,6 @@ const PaymentResult = () => {
 
                 // Chuyển query params thành object
                 const queryParams = Object.fromEntries(searchParams.entries());
-                console.log('Params từ URL:', queryParams);
 
                 // Gọi API Backend để cập nhật giao dịch
                 const response = await api.get('/api/payment/success', {
@@ -34,13 +33,17 @@ const PaymentResult = () => {
                 console.log('Phản hồi từ Backend:', response.data);
 
                 // 🔹 Kiểm tra trạng thái thanh toán từ backend
-                const statusPayment = response.data?.statusPayment; // Kiểm tra trạng thái thanh toán
-                if (statusPayment === 1) {
+                const responseText = response.data.toLowerCase(); // Chuyển thành chữ thường để dễ kiểm tra
+
+                if (responseText.includes('thanh toán thành công')) {
                     setStatus('success');
                     setMessage('Thanh toán thành công, đơn hàng đã được cập nhật!');
-                } else {
+                } else if (responseText.includes('thanh toán thất bại')) {
                     setStatus('failed');
                     setMessage('Thanh toán thất bại! Vui lòng thử lại.');
+                } else {
+                    setStatus('failed');
+                    setMessage('Không thể xác định trạng thái thanh toán.');
                 }
             } catch (error) {
                 console.error('Lỗi:', error.response?.data || error.message);
