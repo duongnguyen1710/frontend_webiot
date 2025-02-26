@@ -4,12 +4,16 @@ import {
   getUsersOrders,
   reorderOrder,
   retryPayment,
+  updateOrderStatus,
 } from "../State/Orders/Action";
 import { createRating } from "../State/Rating/Action";
 import { getUserAddresses } from "../State/Address/Action";
 
 const ProfileOrders = () => {
   const { ratingStatus } = useSelector((state) => state.rating);
+
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+
 
   const dispatch = useDispatch(); // Khai báo dispatch trước khi dùng nó
   const [orderDate, setOrderDate] = useState(
@@ -28,6 +32,25 @@ const ProfileOrders = () => {
     setRetryOrder(order);
     setShowRetryPopup(true);
   };
+
+  const handleConfirmReceived = async (orderId) => {
+    const jwt = localStorage.getItem("jwt"); // Lấy JWT từ localStorage
+    if (!jwt) {
+      alert("Bạn cần đăng nhập để xác nhận đơn hàng.");
+      return;
+    }
+
+    try {
+      await dispatch(updateOrderStatus(jwt, orderId, "Hoàn thành")); // Cập nhật trạng thái
+
+      alert("Đơn hàng đã được cập nhật thành Hoàn thành!");
+      setShowConfirmPopup(false);
+    } catch (error) {
+      alert("Có lỗi xảy ra khi cập nhật đơn hàng: " + error.message);
+    }
+  };
+
+
 
   const handleRetryPayment = async () => {
     if (!selectedPaymentMethod) {
@@ -155,7 +178,7 @@ const ProfileOrders = () => {
       } else {
         alert("Đánh giá đã được gửi thành công!");
       }
-      
+
       setShowPopup(false); // Đóng pop-up sau khi gửi thành công
     } catch (error) {
       alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
@@ -207,6 +230,8 @@ const ProfileOrders = () => {
   }
 
   return (
+
+
     <div>
       <h1 className="text-2xl font-bold mb-4">Lịch sử đơn hàng</h1>
       {orders.length === 0 ? (
@@ -225,6 +250,19 @@ const ProfileOrders = () => {
                 <p>
                   <strong>Tình trạng:</strong> {order.orderStatus}
                 </p>
+
+                {order.orderStatus === "Đang giao hàng" && (
+                  <button
+                    onClick={() => {
+                      setSelectedOrder(order); // Lưu order đang chọn
+                      setShowConfirmPopup(true); // Hiển popup
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md h  over:bg-blue-600"
+                  >
+                    Đã nhận được hàng
+                  </button>
+                )}
+
                 {order.orderStatus === "Hoàn thành" && (
                   <button
                     onClick={() => openReorderPopup(order)}
@@ -295,15 +333,14 @@ const ProfileOrders = () => {
                               item.product?.rated ||
                               ratingStatus === "Đánh giá rồi"
                             } // ✅ Cập nhật trạng thái từ Redux
-                            className={`mt-2 px-4 py-2 rounded-md ${
-                              item.product?.rated ||
+                            className={`mt-2 px-4 py-2 rounded-md ${item.product?.rated ||
                               ratingStatus === "Đánh giá rồi"
-                                ? "bg-gray-400 text-white cursor-not-allowed"
-                                : "bg-blue-500 text-white hover:bg-blue-600"
-                            }`}
+                              ? "bg-gray-400 text-white cursor-not-allowed"
+                              : "bg-blue-500 text-white hover:bg-blue-600"
+                              }`}
                           >
                             {item.product?.rated ||
-                            ratingStatus === "Đánh giá rồi"
+                              ratingStatus === "Đánh giá rồi"
                               ? "Đã đánh giá"
                               : "Đánh giá sản phẩm"}
                           </button>
@@ -333,9 +370,8 @@ const ProfileOrders = () => {
                   <button
                     key={p}
                     onClick={() => handlePageChange(p)}
-                    className={`px-3 py-1 border rounded-md ${
-                      page === p ? "bg-gray-300" : ""
-                    }`}
+                    className={`px-3 py-1 border rounded-md ${page === p ? "bg-gray-300" : ""
+                      }`}
                   >
                     {p + 1}
                   </button>
@@ -602,7 +638,29 @@ const ProfileOrders = () => {
           </div>
         </div>
       )}
+
+      {showConfirmPopup && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+            <h2 className="text-lg font-bold mb-4">Bạn chắc chắn đã nhận hàng?</h2>
+            <div className="flex justify-end space-x-2">
+              <button onClick={() => setShowConfirmPopup(false)} className="px-4 py-2 bg-gray-500 text-white rounded-md">
+                Hủy
+              </button>
+              <button
+                onClick={() => handleConfirmReceived(selectedOrder.id)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md"
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
+
+
   );
 };
 

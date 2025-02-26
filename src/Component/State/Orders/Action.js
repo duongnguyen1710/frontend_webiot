@@ -1,5 +1,5 @@
 import { api } from "../../Config/Api";
-import { CREATE_ORDER_FAILURE, CREATE_ORDER_REQUEST, CREATE_ORDER_SUCCESS, GET_ORDER_INVOICE_FAILURE, GET_ORDER_INVOICE_REQUEST, GET_ORDER_INVOICE_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS, REORDERS_FAILURE, REORDERS_REQUEST, REORDERS_SUCCESS, REPAY_FAILURE, REPAY_REQUEST, REPAY_SUCCESS } from "./ActionType";
+import { CREATE_ORDER_FAILURE, CREATE_ORDER_REQUEST, CREATE_ORDER_SUCCESS, GET_ORDER_INVOICE_FAILURE, GET_ORDER_INVOICE_REQUEST, GET_ORDER_INVOICE_SUCCESS, GET_USERS_ORDERS_FAILURE, GET_USERS_ORDERS_REQUEST, GET_USERS_ORDERS_SUCCESS, REORDERS_FAILURE, REORDERS_REQUEST, REORDERS_SUCCESS, REPAY_FAILURE, REPAY_REQUEST, REPAY_SUCCESS, UPDATE_ORDERS_FAILURE, UPDATE_ORDERS_REQUEST, UPDATE_ORDERS_SUCCESS } from "./ActionType";
 
 export const createOrder = (reqData) => {
     return async (dispatch) => {
@@ -176,6 +176,34 @@ export const retryPayment = (orderId, paymentMethod, addressId, jwt) => {
             });
 
             throw error; // Ném lỗi để UI xử lý hiển thị thông báo
+        }
+    };
+};
+
+export const updateOrderStatus = (jwt, orderId, newStatus) => {
+    return async (dispatch) => {
+        dispatch({ type: UPDATE_ORDERS_REQUEST });
+        try {
+            const { data } = await api.put(
+                `/api/${orderId}/status`,
+                null,
+                {
+                    params: { status: newStatus },
+                    headers: {
+                        Authorization: `Bearer ${jwt}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            console.log('Trạng thái đơn hàng đã cập nhật:', data);
+            dispatch({ type: UPDATE_ORDERS_SUCCESS, payload: data });
+        } catch (error) {
+            dispatch({
+                type: UPDATE_ORDERS_FAILURE,
+                payload: error.response && error.response.data.message
+                    ? error.response.data.message
+                    : error.message,
+            });
         }
     };
 };
