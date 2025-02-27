@@ -11,6 +11,7 @@ import { getUserAddresses } from "../State/Address/Action";
 
 const ProfileOrders = () => {
   const { ratingStatus } = useSelector((state) => state.rating);
+  
 
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
