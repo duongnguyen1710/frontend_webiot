@@ -125,6 +125,9 @@ const ProductDetail = () => {
         </div>
         <div style={{ flex: "2" }}>
           <h2>{productDetails?.name || "Tên sản phẩm"}</h2>
+          <div style={{ color: "#FFD700", fontSize: "20px", marginBottom: "10px" }}>
+            ★★★★★
+          </div>
           <p>Giá: {productDetails?.price || "$100"}</p>
           <div
             style={{

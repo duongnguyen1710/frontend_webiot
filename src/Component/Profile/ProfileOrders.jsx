@@ -8,10 +8,15 @@ import {
 } from "../State/Orders/Action";
 import { createRating } from "../State/Rating/Action";
 import { getUserAddresses } from "../State/Address/Action";
+import { useNavigate } from "react-router-dom";
 
 const ProfileOrders = () => {
-  const { ratingStatus } = useSelector((state) => state.rating);
-  
+  const navigate = useNavigate();
+  const ratingStatus = useSelector((state) => state.rating.ratingStatus);
+
+  const handleProductClick = (productId) => {
+    navigate(`/detail/${productId}`);
+  };
 
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
@@ -169,22 +174,39 @@ const ProfileOrders = () => {
       const ratingData = {
         stars: ratingStars,
         comment: ratingComment,
-        createAt, // Gửi thời gian tạo đánh giá
+        createAt: new Date().toISOString(),
       };
 
-      // Gửi đánh giá thông qua action
+      // Gửi đánh giá và chờ Redux cập nhật
       await dispatch(createRating(currentProduct.id, ratingData, jwt));
-      if (ratingStatus === "Đánh giá rồi") {
-        alert("Bạn đã đánh giá sản phẩm này trước đó!");
-      } else {
-        alert("Đánh giá đã được gửi thành công!");
-      }
 
-      setShowPopup(false); // Đóng pop-up sau khi gửi thành công
+      // Đợi Redux cập nhật xong, kiểm tra `ratingStatus` mới nhất
+      setTimeout(() => {
+        console.log("Redux ratingStatus sau khi cập nhật:", ratingStatus);
+
+        if (ratingStatus === "Đánh giá rồi") {
+          alert("Bạn đã đánh giá sản phẩm này trước đó!");
+        } else if (ratingStatus === "Đánh giá thành công") {
+          alert("Đánh giá đã được gửi thành công!");
+
+          // ✅ Cập nhật trạng thái `rated` cho sản phẩm ngay sau khi đánh giá
+          setCurrentProduct((prevProduct) => ({
+            ...prevProduct,
+            rated: true,
+          }));
+        } else {
+          alert("Lỗi không xác định, vui lòng thử lại!");
+        }
+
+        setShowPopup(false);
+      }, 500); // Đợi Redux cập nhật (0.5s)
     } catch (error) {
+      console.error("Lỗi khi gửi đánh giá:", error);
       alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
     }
   };
+
+
 
   const handleOpenPopup = (product) => {
     setCurrentProduct(product); // Lưu sản phẩm hiện tại
@@ -307,48 +329,32 @@ const ProfileOrders = () => {
                   {order.items?.map((item, idx) => (
                     <li key={idx} className="mt-1 flex items-center">
                       <img
-                        src={
-                          item.product?.images?.[0] ||
-                          "https://via.placeholder.com/100"
-                        }
+                        src={item.product?.images?.[0] || "https://via.placeholder.com/100"}
                         alt={item.product?.name || "Hình ảnh sản phẩm"}
                         width="100"
-                        className="mt-1 rounded-md"
+                        className="mt-1 rounded-md cursor-pointer"
+                        onClick={() => handleProductClick(item.product.id)}
                       />
                       <div className="ml-4">
-                        <strong>
-                          {item.product?.name || "Tên sản phẩm không xác định"}
-                        </strong>
-                        <p>
-                          {item.quantity || 0} x{" "}
-                          {item.product?.price
-                            ? item.product.price.toLocaleString()
-                            : "0"}{" "}
-                          VND
-                        </p>
+                        <strong>{item.product?.name || "Tên sản phẩm không xác định"}</strong>
+                        <p>{item.quantity || 0} x {item.product?.price ? item.product.price.toLocaleString() : "0"} VND</p>
+
                         {/* Nút đánh giá */}
                         {order.orderStatus === "Hoàn thành" && (
                           <button
                             onClick={() => handleOpenPopup(item.product)}
-                            disabled={
-                              item.product?.rated ||
-                              ratingStatus === "Đánh giá rồi"
-                            } // ✅ Cập nhật trạng thái từ Redux
-                            className={`mt-2 px-4 py-2 rounded-md ${item.product?.rated ||
-                              ratingStatus === "Đánh giá rồi"
-                              ? "bg-gray-400 text-white cursor-not-allowed"
-                              : "bg-blue-500 text-white hover:bg-blue-600"
+                            disabled={item.product?.rated} // ✅ Chỉ disable sản phẩm đã đánh giá
+                            className={`mt-2 px-4 py-2 rounded-md ${item.product?.rated ? "bg-gray-400 text-white cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"
                               }`}
                           >
-                            {item.product?.rated ||
-                              ratingStatus === "Đánh giá rồi"
-                              ? "Đã đánh giá"
-                              : "Đánh giá sản phẩm"}
+                            {item.product?.rated ? "Đã đánh giá" : "Đánh giá sản phẩm"}
                           </button>
                         )}
                       </div>
                     </li>
                   ))}
+
+
                 </ul>
               </li>
             ))}

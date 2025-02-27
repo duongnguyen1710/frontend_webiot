@@ -25,13 +25,15 @@ export const ratingReducer = (state = initialState, action) => {
 
         case CREATE_RATING_REQUEST:
             return { ...state, loading: true, error: null, ratingStatus: null };
-        case CREATE_RATING_SUCCESS:
-            return { 
-                ...state, 
-                loading: false, 
-                ratings: [...state.ratings, action.payload], // ✅ Cập nhật danh sách đánh giá mới
-                ratingStatus: action.payload.status // ✅ Lưu trạng thái đánh giá từ API
-            };
+            case CREATE_RATING_SUCCESS:
+                console.log("Đánh giá thành công, Redux cập nhật:", action.payload);
+                return { 
+                    ...state, 
+                    loading: false, 
+                    ratings: [...state.ratings, action.payload], 
+                    ratingStatus: action.payload.status // ✅ Lưu trạng thái đánh giá từ API
+                };
+            
         case CREATE_RATING_FAILURE:
             return { ...state, loading: false, error: action.payload };
 
