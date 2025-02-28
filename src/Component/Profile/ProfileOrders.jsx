@@ -169,27 +169,24 @@ const ProfileOrders = () => {
       alert("Bạn cần đăng nhập để gửi đánh giá.");
       return;
     }
-
+  
     try {
       const ratingData = {
         stars: ratingStars,
         comment: ratingComment,
         createAt: new Date().toISOString(),
       };
-
-      // Gửi đánh giá và chờ Redux cập nhật
+  
       await dispatch(createRating(currentProduct.id, ratingData, jwt));
-
-      // Đợi Redux cập nhật xong, kiểm tra `ratingStatus` mới nhất
+  
       setTimeout(() => {
         console.log("Redux ratingStatus sau khi cập nhật:", ratingStatus);
-
+  
         if (ratingStatus === "Đánh giá rồi") {
           alert("Bạn đã đánh giá sản phẩm này trước đó!");
         } else if (ratingStatus === "Đánh giá thành công") {
           alert("Đánh giá đã được gửi thành công!");
-
-          // ✅ Cập nhật trạng thái `rated` cho sản phẩm ngay sau khi đánh giá
+  
           setCurrentProduct((prevProduct) => ({
             ...prevProduct,
             rated: true,
@@ -197,7 +194,7 @@ const ProfileOrders = () => {
         } else {
           alert("Lỗi không xác định, vui lòng thử lại!");
         }
-
+  
         setShowPopup(false);
       }, 500); // Đợi Redux cập nhật (0.5s)
     } catch (error) {
@@ -205,9 +202,6 @@ const ProfileOrders = () => {
       alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
     }
   };
-
-
-
   const handleOpenPopup = (product) => {
     setCurrentProduct(product); // Lưu sản phẩm hiện tại
     setCreateAt(new Date().toISOString()); // Lấy thời gian hiện tại

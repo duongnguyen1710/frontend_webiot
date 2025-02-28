@@ -126,8 +126,14 @@ const ProductDetail = () => {
         <div style={{ flex: "2" }}>
           <h2>{productDetails?.name || "Tên sản phẩm"}</h2>
           <div style={{ color: "#FFD700", fontSize: "20px", marginBottom: "10px" }}>
-            ★★★★★
+            {Array.from({ length: 5 }, (_, index) => (
+              <span key={index} style={{ opacity: index < Math.round(productDetails?.averageRating) ? 1 : 0.3 }}>
+                ★
+              </span>
+            ))}
+            ({productDetails?.averageRating?.toFixed(1)} / 5)
           </div>
+
           <p>Giá: {productDetails?.price || "$100"}</p>
           <div
             style={{
