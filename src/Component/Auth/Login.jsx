@@ -36,7 +36,6 @@ export default function Login() {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       await dispatch(loginUser({ userData: values, navigate }));
-      // Không hiển thị toast khi đăng nhập thành công
     } catch (error) {
       toast.error("Email hoặc mật khẩu không chính xác!", {
         position: "top-right",
@@ -51,6 +50,8 @@ export default function Login() {
       setSubmitting(false);
     }
   };
+  
+  
 
   return (
     <div>

@@ -93,10 +93,10 @@ const ProfileOrders = () => {
         window.location.href = response.vnpay_url;
       } else if (response.stripe_url) {
         window.location.href = response.stripe_url;
-      } else if (response.momo_url) {
-        window.location.href = response.momo_url;
-      } else if (response.zalopay_url) {
-        window.location.href = response.zalopay_url;
+      } else if (response.payUrl) {
+        window.location.href = response.payUrl;
+      } else if (response.orderUrl) {
+        window.location.href = response.orderUrl;
       }
     } catch (error) {
       alert("Có lỗi xảy ra: " + error.message);
@@ -155,6 +155,7 @@ const ProfileOrders = () => {
     2: "ZaloPay",
     3: "Stripe",
     4: "Tiền mặt",
+    5: "Momo",
   };
 
   const [showPopup, setShowPopup] = useState(false); // Hiển thị pop-up

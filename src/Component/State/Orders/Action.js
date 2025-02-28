@@ -115,8 +115,8 @@ export const reorderOrder = (orderId, paymentMethod, addressId, jwt) => {
                 window.location.href = data.paypal_url;
             } else if (data.orderUrl) {
                 window.location.href = data.orderUrl;
-            } else if (data.momo_url) {
-                window.location.href = data.momo_url;
+            } else if (data.payUrl) {
+                window.location.href = data.payUrl;
             } else if (data.onepay_url) { 
                 window.location.href = data.onepay_url;
             } else {
@@ -161,8 +161,8 @@ export const retryPayment = (orderId, paymentMethod, addressId, jwt) => {
                 window.location.href = data.stripe_url;
             } else if (data.orderUrl) {
                 window.location.href = data.orderUrl;
-            } else if (data.momo_url) {
-                window.location.href = data.momo_url;
+            } else if (data.payUrl) {
+                window.location.href = data.payUrl;
             } else {
                 console.log("Không có URL thanh toán từ backend", data);
             }

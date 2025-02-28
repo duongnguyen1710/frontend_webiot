@@ -18,7 +18,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setMessage(""); // Xóa thông báo cũ
-
+  
     if (step === 1) {
       // Gửi OTP
       try {
@@ -33,21 +33,24 @@ export default function ForgotPassword() {
       try {
         await dispatch(verifyOtpForgotPassword({ email: values.email, otp: values.otp }));
         setMessage("OTP hợp lệ! Bạn có thể đặt lại mật khẩu.");
-
+  
         // Lưu email vào localStorage để ResetPassword.js có thể lấy lại
         localStorage.setItem("resetEmail", values.email);
-
-        // Chuyển hướng sang trang Reset Password
+  
+        // Chuyển hướng sang trang Reset Password sau khi OTP hợp lệ
         setTimeout(() => {
           navigate("/resetpassword");
         }, 1000); // Chuyển trang sau 1 giây
       } catch (error) {
         setMessage("OTP không hợp lệ! Vui lòng thử lại.");
+        setSubmitting(false);
+        return; // **Thêm return để dừng lại khi OTP sai**
       }
     }
-
+  
     setSubmitting(false);
   };
+  
 
   return (
     <div>
