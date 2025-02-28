@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserAddresses, createAddress, deleteAddress, updateAddress } from "../State/Address/Action";
+import {
+  getUserAddresses,
+  createAddress,
+  deleteAddress,
+  updateAddress,
+} from "../State/Address/Action";
 
 const ProfileAddress = () => {
   const dispatch = useDispatch();
@@ -27,8 +32,6 @@ const ProfileAddress = () => {
       dispatch(getUserAddresses(token, currentPage));
     }
   }, [dispatch, currentPage]);
-
-  
 
   const getPageNumbers = () => {
     const maxPagesToShow = 3;
@@ -97,7 +100,7 @@ const ProfileAddress = () => {
       alert("Bạn cần đăng nhập để thêm địa chỉ.");
       return;
     }
-  
+
     try {
       if (isEditMode && currentEditId) {
         await dispatch(updateAddress(currentEditId, newAddress, token));
@@ -106,16 +109,14 @@ const ProfileAddress = () => {
         await dispatch(createAddress(newAddress, token));
         alert("Thêm địa chỉ thành công.");
       }
-      
+
       handleClosePopup(); // Đóng popup sau khi lưu
       dispatch(getUserAddresses(token, currentPage)); // Load lại danh sách địa chỉ
-  
     } catch (error) {
       console.error("Error saving address:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
-  
 
   const handleDeleteAddress = async (id) => {
     const token = localStorage.getItem("jwt");
@@ -222,15 +223,17 @@ const ProfileAddress = () => {
 
       {isPopupOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-md shadow-md">
-            <h2 className="text-xl font-bold mb-4">{isEditMode ? "Chỉnh Sửa Địa Chỉ" : "Thêm Mới Địa Chỉ"}</h2>
+          <div className="bg-white p-6 rounded-md shadow-md w-[600px] max-w-full">
+            <h2 className="text-xl font-bold mb-4">
+              {isEditMode ? "Chỉnh Sửa Địa Chỉ" : "Thêm Mới Địa Chỉ"}
+            </h2>
             {[
-              "fullName",
-              "phone",
-              "fullAddress",
-              "street",
-              "city",
-              "province",
+              "Họ tên",
+              "Số điện thoại",
+              "Địa chỉ",
+              "Phường",
+              "Thành phố",
+              "Tỉnh",
             ].map((field) => (
               <input
                 key={field}

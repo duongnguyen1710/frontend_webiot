@@ -12,6 +12,12 @@ const VerifyEmail = () => {
   const location = useLocation();
   const { success, error } = useSelector((state) => state.auth); // Lấy trạng thái từ Redux
 
+  const validateOtp = (value) => {
+    if (!/^\d{6}$/.test(value)) {
+      return "Mã OTP phải gồm đúng 6 chữ số.";
+    }
+  };
+
   // Lấy email từ state hoặc để trống
   const email = location.state?.email || "";
 
@@ -53,7 +59,10 @@ const VerifyEmail = () => {
   return (
     <div>
       {/* Icon quay lại */}
-      <IconButton onClick={() => navigate("/register")} sx={{ position: "absolute", top: 10, left: 10 }}>
+      <IconButton
+        onClick={() => navigate("/register")}
+        sx={{ position: "absolute", top: 10, left: 10 }}
+      >
         <ArrowBack />
       </IconButton>
 
@@ -70,6 +79,7 @@ const VerifyEmail = () => {
               fullWidth
               variant="outlined"
               margin="normal"
+              validate={validateOtp} // Áp dụng validation
               error={touched.otp && Boolean(errors.otp)}
               helperText={
                 touched.otp && errors.otp

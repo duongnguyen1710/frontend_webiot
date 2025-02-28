@@ -396,14 +396,7 @@ const Cart = () => {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <Field
-                    as={TextField}
-                    name="pincode"
-                    label="Mã bưu điện"
-                    fullWidth
-                  />
-                </Grid>
+                
                 <Grid item xs={12}>
                   <Button
                     type="submit"

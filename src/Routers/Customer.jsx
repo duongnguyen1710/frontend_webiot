@@ -49,7 +49,7 @@ const Customer = () => {
           <Route path="/product-list" element={<ProductList />} />
           {/* <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} /> */}
-          <Route path="/verify" element={<VerifyEmail />} />
+          {/* <Route path="/verify" element={<VerifyEmail />} /> */}
         </Routes>
       </main>
 

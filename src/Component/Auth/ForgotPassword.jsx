@@ -24,32 +24,37 @@ export default function ForgotPassword() {
       try {
         await dispatch(sendOtpForgotPassword(values.email));
         setMessage("OTP đã được gửi đến email của bạn!");
-        setStep(2); // Chuyển sang bước nhập OTP
+        setStep(2);
       } catch (error) {
         setMessage("Có lỗi xảy ra! Vui lòng thử lại.");
       }
     } else if (step === 2) {
       // Xác thực OTP
       try {
-        await dispatch(verifyOtpForgotPassword({ email: values.email, otp: values.otp }));
-        setMessage("OTP hợp lệ! Bạn có thể đặt lại mật khẩu.");
+        const response = await dispatch(verifyOtpForgotPassword({ email: values.email, otp: values.otp }));
   
-        // Lưu email vào localStorage để ResetPassword.js có thể lấy lại
-        localStorage.setItem("resetEmail", values.email);
+        if (response?.success) {
+          setMessage("OTP hợp lệ! Bạn có thể đặt lại mật khẩu.");
   
-        // Chuyển hướng sang trang Reset Password sau khi OTP hợp lệ
-        setTimeout(() => {
-          navigate("/resetpassword");
-        }, 1000); // Chuyển trang sau 1 giây
+          // Lưu email vào localStorage để ResetPassword.js có thể lấy lại
+          localStorage.setItem("resetEmail", values.email);
+  
+          // Chuyển hướng sang trang Reset Password sau khi OTP hợp lệ
+          setTimeout(() => {
+            navigate("/resetpassword");
+          }, 1000);
+        } else {
+          // Nếu OTP sai, hiển thị lỗi và không chuyển trang
+          setMessage(response?.message || "OTP không hợp lệ! Vui lòng thử lại.");
+        }
       } catch (error) {
         setMessage("OTP không hợp lệ! Vui lòng thử lại.");
-        setSubmitting(false);
-        return; // **Thêm return để dừng lại khi OTP sai**
       }
     }
   
     setSubmitting(false);
   };
+  
   
 
   return (

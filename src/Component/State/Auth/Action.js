@@ -35,51 +35,64 @@ export const registerUser = (reqData) => async (dispatch) => {
 
     dispatch({ type: REGISTER_SUCCESS, payload: data.jwt });
     console.log("Đăng ký thành công", data);
+
+    return { success: true, message: "Đăng ký thành công" };
   } catch (error) {
     console.error("Lỗi đăng ký:", error);
+
+    const errorMessage = error.response?.data?.message || "Đăng ký thất bại";
+
     dispatch({
       type: REGISTER_FAILURE,
-      payload: error.response?.data || "Đăng ký thất bại",
+      payload: errorMessage,
     });
+
+    return { success: false, message: errorMessage }; // Trả lỗi về `Register.js`
   }
 };
 
 
+
 export const loginUser = (reqData) => async (dispatch) => {
-    dispatch({ type: LOGIN_REQUEST });
-    try {
-      const { data } = await api.post(`/auth/signin`, reqData.userData);
-  
-      // Kiểm tra JWT token
-      if (data.jwt) {
-        localStorage.setItem("jwt", data.jwt);
-        dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
-        console.log("Login success:", data);
-  
-        // Kiểm tra vai trò và điều hướng
-        if (data.role === "ROLE_CUSTOMER") {
-          reqData.navigate("/");
-        } else if (data.role === "ROLE_ADMIN") {
-          reqData.navigate("/admin/dashboard");
-        }
-      } else {
-        throw new Error("JWT token not found in response");
+  dispatch({ type: LOGIN_REQUEST });
+
+  try {
+    const { data } = await api.post(`/auth/signin`, reqData.userData);
+
+    // Kiểm tra JWT token
+    if (data.jwt) {
+      localStorage.setItem("jwt", data.jwt);
+      dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
+      console.log("Login success:", data);
+
+      // Hiển thị thông báo và điều hướng dựa trên vai trò
+      if (data.role === "ROLE_CUSTOMER") {
+        reqData.navigate("/");
+      } else if (data.role === "ROLE_ADMIN") {
+        reqData.navigate("/admin/dashboard");
       }
-    } catch (error) {
-      // Xử lý lỗi một cách rõ ràng
-      let errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại!";
-      if (error.response) {
-        errorMessage = error.response.data.message || error.response.statusText;
-      } else if (error.request) {
-        errorMessage = "Không thể kết nối đến server.";
-      } else {
-        errorMessage = error.message;
-      }
-  
-      console.error("Login failed:", errorMessage);
-      dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+
+      return { success: true, message: "Đăng nhập thành công" }; // Trả kết quả về handleSubmit
+    } else {
+      throw new Error("JWT token not found in response");
     }
-  };
+  } catch (error) {
+    let errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại!";
+    if (error.response) {
+      errorMessage = error.response.data.message || error.response.statusText;
+    } else if (error.request) {
+      errorMessage = "Không thể kết nối đến server.";
+    } else {
+      errorMessage = error.message;
+    }
+
+    console.error("Login failed:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+
+    return { success: false, message: errorMessage }; // Trả lỗi về handleSubmit
+  }
+};
+
 
   export const getUser = (jwt) => async (dispatch) => {
     dispatch({ type: GET_USER_REQUEST });
@@ -187,22 +200,28 @@ export const verifyOtpForgotPassword = ({ email, otp }) => async (dispatch) => {
 
   try {
     const response = await api.post("/auth/verify-reset-password", { email, opt: otp });
+ // Fix lỗi opt -> otp
 
-    console.log("✅ Xác thực OTP thành công:", response.data); // Log nếu OTP hợp lệ
+    console.log("✅ Xác thực OTP thành công:", response.data);
 
     dispatch({
       type: VERIFY_OTP_FORGOT_PASSWORD_SUCCESS,
-      payload: response.data, // "Mã OTP hợp lệ! Bạn có thể đặt lại mật khẩu."
+      payload: response.data,
     });
+
+    return { success: true, message: response.data }; // ✅ Trả về thành công
   } catch (error) {
-    console.error("❌ Xác thực OTP thất bại:", error.response?.data || "OTP không hợp lệ!"); // Log nếu OTP sai
+    console.error("❌ Xác thực OTP thất bại:", error.response?.data || "OTP không hợp lệ!");
 
     dispatch({
       type: VERIFY_OTP_FORGOT_PASSWORD_FAILURE,
       payload: error.response?.data || "OTP không hợp lệ!",
     });
+
+    return { success: false, message: error.response?.data || "OTP không hợp lệ!" }; // ❌ Trả về thất bại
   }
 };
+
 
 export const resetPassword = ({ email, newPassword }) => async (dispatch) => {
   dispatch({ type: RESET_PASSWORD_REQUEST });

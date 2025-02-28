@@ -35,22 +35,18 @@ export default function Login() {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      await dispatch(loginUser({ userData: values, navigate }));
+      const response = await dispatch(loginUser({ userData: values, navigate }));
+  
+      // Kiểm tra nếu đăng nhập thành công
+      if (response?.success) {
+        alert("Đăng nhập thành công!");
+      }
     } catch (error) {
-      toast.error("Email hoặc mật khẩu không chính xác!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      alert("Email hoặc mật khẩu không chính xác!");
     } finally {
       setSubmitting(false);
     }
   };
-  
   
 
   return (

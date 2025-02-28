@@ -43,27 +43,31 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({});
+    setErrors({}); // Xóa lỗi trước đó
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
+  
     setIsSubmitting(true);
     try {
-      await dispatch(registerUser({ userData: formData, navigate }));
-    } catch (error) {
-      if (error.message?.includes("Email")) {
-        setErrors({ email: error.message });
-      } else {
-        console.error("Unexpected error:", error.message);
-        console.log("Duongdez");
+      const response = await dispatch(registerUser({ userData: formData, navigate }));
+  
+      // Kiểm tra nếu API trả về lỗi "Email đã tồn tại"
+      if (response?.message === "Email đã tồn tại") {
+        alert("Email đã tồn tại, vui lòng sử dụng email khác!");
+        setErrors({ email: "Email đã tồn tại, vui lòng sử dụng email khác!" });
       }
+    } catch (error) {
+      alert("Đã xảy ra lỗi, vui lòng thử lại!"); // Hiển thị lỗi chung nếu có lỗi khác
+      console.error("Unexpected error:", error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  
 
   return (
     <div style={{ maxWidth: "400px", margin: "auto" }}>
