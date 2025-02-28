@@ -125,9 +125,17 @@ const ProductDetail = () => {
         </div>
         <div style={{ flex: "2" }}>
           <h2>{productDetails?.name || "Tên sản phẩm"}</h2>
-          <div style={{ color: "#FFD700", fontSize: "20px", marginBottom: "10px" }}>
+          <div
+            style={{ color: "#FFD700", fontSize: "20px", marginBottom: "10px" }}
+          >
             {Array.from({ length: 5 }, (_, index) => (
-              <span key={index} style={{ opacity: index < Math.round(productDetails?.averageRating) ? 1 : 0.3 }}>
+              <span
+                key={index}
+                style={{
+                  opacity:
+                    index < Math.round(productDetails?.averageRating) ? 1 : 0.3,
+                }}
+              >
                 ★
               </span>
             ))}
@@ -176,10 +184,10 @@ const ProductDetail = () => {
 
       <div>
         <h3>Mô tả chi tiết</h3>
-        <p>
+        <div style={{ whiteSpace: "pre-line" }}>
           {productDetails?.description ||
             "Đây là mô tả chi tiết của sản phẩm. Bạn có thể thêm ảnh vào mô tả này."}
-        </p>
+        </div>
 
         <img
           src={productImage}
@@ -232,7 +240,9 @@ const ProductDetail = () => {
                     }}
                   />
                   <div>
-                    <strong>{review.user?.fullName || "Người dùng ẩn danh"}</strong>
+                    <strong>
+                      {review.user?.fullName || "Người dùng ẩn danh"}
+                    </strong>
                     <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
                       {review.createAt
                         ? new Date(review.createAt).toLocaleString("vi-VN")

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 import { api } from '../../Config/Api';
 
 const ZaloPayResult = () => {
@@ -18,42 +19,34 @@ const ZaloPayResult = () => {
                     return;
                 }
 
-                // Chỉ lấy các trường cần thiết từ URL
-                const queryParams = {
-                    apptransid: searchParams.get("apptransid"),
-                    bankcode: searchParams.get("bankcode"),
-                    checksum: searchParams.get("checksum"),
-                    pmcid: searchParams.get("pmcid"),
-                    status: searchParams.get("status"),
-                };
+                // Chuyển query params thành object
+                const queryParams = Object.fromEntries(searchParams.entries());
 
-                console.log("🔍 Params gửi lên backend:", queryParams);
-
-                if (!queryParams.apptransid) {
-                    setStatus("failed");
-                    setMessage("Không tìm thấy mã giao dịch từ ZaloPay.");
-                    return;
-                }
-
-                // Gửi request đến API Backend
+                // Gọi API Backend để cập nhật giao dịch
                 const response = await api.get('/api/zalopay', {
                     params: queryParams,
-                    headers: { Authorization: `Bearer ${jwt}` },
+                    headers: {
+                        Authorization: `Bearer ${jwt}`,
+                    },
                 });
 
                 console.log('Phản hồi từ Backend:', response.data);
 
-                // 🔹 Kiểm tra `statusPayment` từ API backend
-                const statusPayment = response.data?.statusPayment;
-                if (statusPayment === 1) {
+                // 🔹 Kiểm tra trạng thái thanh toán từ backend
+                const responseText = response.data.toLowerCase(); // Chuyển thành chữ thường để dễ kiểm tra
+
+                if (responseText.includes('đơn hàng đã được cập nhật trạng thái: 1')) {
                     setStatus('success');
                     setMessage('Thanh toán thành công, đơn hàng đã được cập nhật!');
-                } else {
+                } else if (responseText.includes('thanh toán thất bại')) {
                     setStatus('failed');
                     setMessage('Thanh toán thất bại! Vui lòng thử lại.');
+                } else {
+                    setStatus('failed');
+                    setMessage('Không thể xác định trạng thái thanh toán.');
                 }
             } catch (error) {
-                console.error('❌ Lỗi:', error.response?.data || error.message);
+                console.error('Lỗi:', error.response?.data || error.message);
                 setStatus('failed');
                 setMessage(error.response?.data?.message || 'Lỗi khi xử lý thanh toán ZaloPay');
             }
@@ -76,7 +69,7 @@ const ZaloPayResult = () => {
                 <div>
                     <h2>❌ Thanh toán thất bại!</h2>
                     <p>{message}</p>
-                    <a href="/">Thử lại</a>
+                    <a href="/profile/orders">Thử lại</a>
                 </div>
             )}
         </div>

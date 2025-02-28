@@ -159,8 +159,8 @@ export const retryPayment = (orderId, paymentMethod, addressId, jwt) => {
                 window.location.href = data.vnpay_url;
             } else if (data.stripe_url) {
                 window.location.href = data.stripe_url;
-            } else if (data.zalopay_url) {
-                window.location.href = data.zalopay_url;
+            } else if (data.orderUrl) {
+                window.location.href = data.orderUrl;
             } else if (data.momo_url) {
                 window.location.href = data.momo_url;
             } else {
